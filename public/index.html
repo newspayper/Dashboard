@@ -31,27 +31,20 @@
 
     <div class="ui raised card" id="pub1">
       <div class="image">
-        <img src="url de la couv de Society d'avant">
-        <a class="ui blue ribbon label" onclick="clique()">Ribbon</a>
-        <a class="ui right corner label">
-          <i class="heart icon"></i>
-        </a>
+        <img src="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">
+        <a class="ui blue ribbon label">Update</a>
       </div>
       <div class="content">
-        <a class="header" id="nom">Le 1 n° 13</a>
+        <a class="header">Le 1 n° 13</a>
         <div class="meta">
-          <span class="date" id="date_parution">Sun Apr 01 2018 00:00:00 GMT+0200 (CEST)</span>
+          <span class="date">02/05/2018</span>
         </div>
       </div>
       <div class="extra content">
         <a><i class="hashtag icon"></i></a>
-        <a>socialiste;horando</a>
+        <a>utopie;rêve</a>
       </div>
       <div class="ui top attached teal button">
-        <i class="list icon"></i>
-        Voir Sommaire
-      </div>
-      <div class="ui bottom attached red button">
         <i class="list icon"></i>
         Voir Sommaire
       </div>
@@ -63,31 +56,87 @@
 
   </div>
 
+<!-- Modal (pop-up) affiché lors d'un clic sur le ribbon [A faire modifier par modalForm()] -->
 
 <div class="ui modal">
   <i class="close icon"></i>
+  
+  <!-- Début des éléments à modifier dynamiquement -->
+
   <div class="header">
-    Profile Picture
+    Le 1
   </div>
+  
   <div class="image content">
+    
     <div class="ui medium image">
-      <img src="/images/avatar/large/chris.jpg">
+      <img src="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">
+      <div class="ui basic segment">
+        <a href="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">URL : https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png</a>
+      </div>
     </div>
+
     <div class="description">
-      <div class="ui header">We've auto-chosen a profile image for you.</div>
-      <p>We've grabbed the following image from the <a href="https://www.gravatar.com" target="_blank">gravatar</a> image associated with your registered e-mail address.</p>
-      <p>Is it okay to use this photo?</p>
+      <div class="ui header">Sommaire n° 200</div>
+      <div class="ui segments">
+        <div class="ui segment">
+          <p>On célèbre aujourd’hui l’élan collectif de Mai 68. Pourtant, qu’il semble loin le temps où l’on croyait que l’imagination pourrait s’emparer du pouvoir et changer la vie. En tournant au cauchemar, les grandes utopies du xxe siècle ont-elles à jamais tué dans l’œuf toute aspiration à un avenir meilleur ? Est-il encore possible de rêver un futur désirable en œuvrant sans crainte à son avènement ? Toutes ces questions animent ce numéro 200 du 1qui revient sur plus de deux millénaires de pensées utopistes, tout en interrogeant les principaux défis de notre siècle. Et si le rêve était le grand moteur de l’histoire ?</p>
+        </div>
+        <div class="ui secondary segment">
+          <p>utopie;rêve</p>
+        </div>
+      </div>
+
+    <!-- Fin des éléments à modifier dynamiquement -->
+
+      <h4 class="ui horizontal divider header">
+        <i class="edit icon"></i>
+        Mettre à jour
+      </h4>
+
+      <!-- Formulaire MAJ --> 
+
+      <div class="ui form">
+        <div class="field">
+          <label>URL de la Une</label>
+          <input type="text">
+        </div>
+        <div class="field">
+          <label>Numero</label>
+          <input type="text">
+        </div>
+        <!-- A remplacer par un DatePicker -->
+        <div class="field">
+          <label>Date de Parution</label>
+          <input type="text">
+        </div>
+        <div class="field">
+          <label>Sommaire</label>
+          <textarea></textarea>
+        </div>
+        <div class="field">
+          <label>Tags</label>
+          <input type="text">
+        </div>     
+      </div>    
+
+  <!-- FIN de description -->  
     </div>
+  
+  <!-- FIN de image content -->
   </div>
+  
   <div class="actions">
     <div class="ui black deny button">
-      Nope
+      Annuler
     </div>
     <div class="ui positive right labeled icon button">
-      Yep, that's me
+      Valider les modifications
       <i class="checkmark icon"></i>
     </div>
   </div>
+
+<!-- FIN de modal -->
 </div>
 
   

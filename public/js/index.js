@@ -1,13 +1,15 @@
 // Initialize Firebase
+// Initialize Firebase
 var config = {
-    apiKey: "AIzaSyAqCBAqOr76xKL-eMXZQxGfWVfLO7WIgw0",
-    authDomain: "titres-presse-npp.firebaseapp.com",
-    databaseURL: "https://titres-presse-npp.firebaseio.com",
-    projectId: "titres-presse-npp",
-    storageBucket: "titres-presse-npp.appspot.com",
-    messagingSenderId: "73707316345"
+    apiKey: "AIzaSyDg-vtPrUwFU1m7w-5RtCy-mAAFi-qJx8U",
+    authDomain: "chatbot-npp.firebaseapp.com",
+    databaseURL: "https://chatbot-npp.firebaseio.com",
+    projectId: "chatbot-npp",
+    storageBucket: "chatbot-npp.appspot.com",
+    messagingSenderId: "11829130023"
 };
 firebase.initializeApp(config);
+
 
 
 var today = new Date();
@@ -70,8 +72,6 @@ publicationsRef.on("child_added", snap => {
                 periodeJours: periodeJours
             }
         );
-
-        console.log(titresArray);
 
         // Append to Card Grid
 

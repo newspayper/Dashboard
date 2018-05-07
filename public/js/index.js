@@ -40,6 +40,7 @@ publicationsRef.on("child_added", snap => {
 
     // Collect Card Data
 
+    var key = snap.key;
     var URL_couv = snap.child("URL_couv").val();
     // On enregistre la date de parution sous forme de date
     var date_parution = new Date(parseInt(snap.child("date_parution").val()));
@@ -62,6 +63,7 @@ publicationsRef.on("child_added", snap => {
 
         titresArray.push(
             {
+                key: key,
                 URL_couv: URL_couv,
                 date_parution: date_parution,
                 numero: numero,
@@ -116,6 +118,7 @@ function ribbonAlert (date_parution, periodeJours) {
 // la fonction suivante renvoie l'élement card HTML/DOM en fonction des infos de la publication
 function createCard (titresArray, titre) {
     
+    var key = titresArray.find ( titresArray => titresArray.titre === titre).key;    
     var URL_couv = titresArray.find ( titresArray => titresArray.titre === titre).URL_couv;
     var date_parution = titresArray.find ( titresArray => titresArray.titre === titre).date_parution;
     var numero = titresArray.find ( titresArray => titresArray.titre === titre).numero;
@@ -126,7 +129,7 @@ function createCard (titresArray, titre) {
     var periodeJours = titresArray.find ( titresArray => titresArray.titre === titre).periodeJours;
 
     cardString = '';
-    cardString += '<div class="pubcard ui raised card">' // Ajouter ici l'ID de la publiaction pour pouvoir cibler le div
+    cardString += '<div class="pubcard ui raised card" id="' + key + '">'
     cardString +=  '<div class="image">'
     cardString +=    '<img src="' + URL_couv + '">'
     cardString +=    ribbonAlert(date_parution, periodeJours)

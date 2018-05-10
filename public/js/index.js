@@ -1,4 +1,4 @@
-// Initialize Firebase
+
 // Initialize Firebase
 var config = {
     apiKey: "AIzaSyDg-vtPrUwFU1m7w-5RtCy-mAAFi-qJx8U",
@@ -36,26 +36,26 @@ var titresRef = firebase.database().ref().child("titres");
 
 // Get Snapshot
 
-publicationsRef.on("child_added", snap => {
+publicationsRef.on("child_added", snapPub => {
 
     // Collect Card Data
 
-    var key = snap.key;
-    var URL_couv = snap.child("URL_couv").val();
+    var key = snapPub.key;
+    var URL_couv = snapPub.child("URL_couv").val();
     // On enregistre la date de parution sous forme de date
-    var date_parution = new Date(parseInt(snap.child("date_parution").val()));
-    var numero = snap.child("numero").val();
-    var sommaire = snap.child("sommaire").val();    
-    var tags = snap.child("tags").val();
-    var titre = snap.child("titre").val();
+    var date_parution = new Date(parseInt(snapPub.child("date_parution").val()));
+    var numero = snapPub.child("numero").val();
+    var sommaire = snapPub.child("sommaire").val();    
+    var tags = snapPub.child("tags").val();
+    var titre = snapPub.child("titre").val();
 
     // On parcourt ensuite la base Titres pour ajouter la periodicite
 
-    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snap => {
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitres => {
 
-        // console.log(titre + " : " + snap.child("periodicite").val());
+        // console.log(titre + " : " + snapTitres.child("periodicite").val());
 
-        var periodicite = snap.child("periodicite").val();
+        var periodicite = snapTitres.child("periodicite").val();
 
         var periodeJours = periodiciteArray.find( periode => periode.periodicite === periodicite).jours;
 
@@ -79,16 +79,22 @@ publicationsRef.on("child_added", snap => {
 
         $("#cardGrid").append(createCard(titresArray,titre));
     
-        // jQuery pour afficher le modal en fonction du ribbon cliqué
+        
+        //remplacement du caractère spécial '&' sinon jQuery le refuse
+        var ribbonId = "#ribbon-" + key;
+        ribbonId = ribbonId.replace(/&/g, '\\&');
+        //console.log("ribbonId : " + ribbonId);
 
-        $(".ribbon").click(function() {
-            //alert("cliquage");
+        // bind de l'événement click au ribbon de la publication qui vient d'être ajouté
+        // sur clic, paramétrage puis affichage de l'élément modal
+        
+        $(ribbonId).click(function() {
+            //alert("clic sur : " + ribbonId);
             ribbonParent = $(this).parent().parent();
             pubId = ribbonParent.attr('id');
-            console.log(pubId);
+            //console.log(pubId);
 
-            var pubArray = createPubArray(pubId);
-            modalForm (pubArray);
+            modalForm(snapPub.val());
 
             // On affiche l'élément modal (fonction Semantic UI)
             $('.ui.modal').modal('show');
@@ -102,16 +108,16 @@ publicationsRef.on("child_added", snap => {
 
 
 // la fonction suivante renvoie l'élement ribbon HTML/DOM à afficher en fonction de l'urgence de MAJ (utilisé par createCard)
-function ribbonAlert (date_parution, periodeJours) {
+function ribbonAlert (date_parution, periodeJours, key) {
     
     // Calcul de la difference entre les dates en jours (arrondi au supérieur)
     var diff = Math.ceil((today - date_parution) / 86400000);
     
     var reste = periodeJours - diff;
     if (reste < 3) {
-      return '<a class="ui red ribbon label">MAJ REQUISE</a>';
+      return '<a class="ui red ribbon label" id="ribbon-' + key + '">MAJ REQUISE</a>';
     } else {
-      return '<a class="ui green ribbon label">RESTE '+ reste + ' JOURS</a>' ;
+      return '<a class="ui green ribbon label" id="ribbon-' + key + '">RESTE '+ reste + ' JOURS</a>' ;
     }
 };
 
@@ -132,7 +138,7 @@ function createCard (titresArray, titre) {
     cardString += '<div class="pubcard ui raised card" id="' + key + '">'
     cardString +=  '<div class="image">'
     cardString +=    '<img src="' + URL_couv + '">'
-    cardString +=    ribbonAlert(date_parution, periodeJours)
+    cardString +=    ribbonAlert(date_parution, periodeJours, key)
     cardString +=   '</div>'
     cardString +=  '<div class="content">'
     cardString +=  '<a class="header">' + titre + ' n° ' + numero + '</a>'
@@ -157,22 +163,87 @@ function createCard (titresArray, titre) {
 
 }
 
-function createPubArray(pubId){
 
-    // fonction qui crée l'array d'elements qui seront utilisés dans l'affichage du modal (pop-up)
-    var pubArray;
 
-    return pubArray;
-};
-
-function modalForm(pubArray) {
+function modalForm(publication) {
 
     // fonction qui modifie / recrée le modal (voir HTML)
 
+    //titre
+    $("#modal-titre").text(publication.titre);
+
+    //header sommaire
+    $("#modal-headerSommaire").text("Sommaire du n°" + publication.numero);
+
+    //URL couverture
+    $("#modal-URL_couv").text(publication.URL_couv);
+    $("#modal-URL_couv").attr("href", publication.URL_couv);
+    $("#modal-URL_couv").attr("target", "_blank");
+
+    //sommaire
+    $("#modal-sommaire").text(publication.sommaire);
+
+    //tags
+    $("#modal-tags").text(publication.tags);
+
+    //image couverture
+    $("#modal-couv").attr("src", publication.URL_couv);
 };
 
 function submitPub() {
 
     // fonction qui enregistre en base le formulaire du modal
+
+};
+
+//sert pu à rien
+function pubObject(pubId){
+
+    // fonction qui crée l'array d'elements qui seront utilisés dans l'affichage du modal (pop-up)
+
+    var publicationsRef = firebase.database().ref().child("publications");
+
+    publicationsRef.child(pubId).once('value').then(function(snapshot) {
+
+        //console.log(JSON.stringify(snapshot));
+
+        this.sommaire = snapshot.child("sommaire").val();
+        this.tags = snapshot.child("tags").val();
+        this.numero = snapshot.child("numero").val();
+        this.date_parution = snapshot.child("date_parution").val();
+        this.URL_couv = snapshot.child("URL_couv").val();
+        this.id = pubId;
+
+        //console.log("Objet rempli à partir de la BDD : " + JSON.stringify(publication));
+
+    });
+
+};
+
+//sert pu à rien
+function createPubObject(pubId){
+
+    // fonction qui crée l'array d'elements qui seront utilisés dans l'affichage du modal (pop-up)
+
+    var publicationsRef = firebase.database().ref().child("publications");
+
+    publicationsRef.child(pubId).once('value').then(function(snapshot) {
+
+        //console.log(JSON.stringify(snapshot));
+        
+        var publication = {};
+
+        publication["sommaire"] = snapshot.child("sommaire").val();
+        publication["tags"] = snapshot.child("tags").val();
+        publication["numero"] = snapshot.child("numero").val();
+        publication["date_parution"] = snapshot.child("date_parution").val();
+        publication["URL_couv"] = snapshot.child("URL_couv").val();
+        publication["id"] = pubId;
+
+        //console.log("Objet rempli à partir de la BDD : " + JSON.stringify(publication));
+
+        return publication;
+
+    });
 
 };

@@ -10,80 +10,67 @@
     <script
       src="https://code.jquery.com/jquery-3.1.1.min.js"
       integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-      crossorigin="anonymous"></script>
-    <script src="semantic/semantic.min.js"></script>
-
+      crossorigin="anonymous">
+    </script>
+    <script src="semantic/semantic.min.js"></script>  
+    
+    <!-- Calendar picker -->
+    <script type="text/javascript" src="../node_modules/semantic-ui-calendar/dist/calendar.min.js"></script>
+    <link rel="stylesheet" href="../node_modules/semantic-ui-calendar/dist/calendar.min.css" />
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="css/main.css">
-
 
 </head>
 
 
-  
-
 <body>
 
+<div class="ui six doubling cards" id="cardGrid">
 
-  <div class="ui six doubling cards" id="cardGrid">
- 
-    <!-- Exemple Statique -->
+    <div class="ui raised card" id="pub_vide">  
 
-    <div class="ui raised card" id="pub1">
-      <div class="image">
-        <img src="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">
-        <a class="ui blue ribbon label">Update</a>
-      </div>
       <div class="content">
-        <a class="header">Le 1 n° 13</a>
-        <div class="meta">
-          <span class="date">02/05/2018</span>
+        
+        <div class="ui right labeled icon button blue" data-value="modifier" id="btn-add_pub">
+            Ajouter une publication
+            <i class="plus icon"></i>
         </div>
+      
       </div>
-      <div class="extra content">
-        <a><i class="hashtag icon"></i></a>
-        <a>utopie;rêve</a>
-      </div>
-      <div class="ui top attached teal button">
-        <i class="list icon"></i>
-        Voir Sommaire
-      </div>
+
     </div>
 
-    <!-- voir script remplissage cardGrid (index.js) -->
+</div>
 
 
+<!-- Modal affiché lors d'un clic sur le ribbon -->
 
-  </div>
-
-<!-- Modal (pop-up) affiché lors d'un clic sur le ribbon [A faire modifier par modalForm()] -->
-
-<div class="ui modal">
+<div class="ui modal" id="editionModal" data-value="">
   <i class="close icon"></i>
   
   <!-- Début des éléments à modifier dynamiquement -->
 
-  <div class="header" id="modal-titre">
-    Le 1
-  </div>
+  <div class="header" id="modal-titre"></div>
   
   <div class="image content">
     
     <div class="ui medium image">
-      <img id="modal-couv" src="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">
+      <img id="modal-couv" src="">
       <div class="ui basic segment">
-        <a id="modal-URL_couv" href="https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png">URL : https://le1hebdo.fr/img/1525165036Capture d’écran 2018-05-01 à 10.56.48.png</a>
+          <a id="modal-URL_couv" href=""></a>
       </div>
     </div>
 
     <div class="description">
-      <div class="ui header" id="modal-headerSommaire">Sommaire n° 200</div>
+      <div class="ui header" style="display:inline">Sommaire du n° </div>
+      <p class="ui header" id="modal-numero" style="display:inline"></p>
       <div class="ui segments">
         <div class="ui segment">
-          <p id="modal-sommaire">On célèbre aujourd’hui l’élan collectif de Mai 68. Pourtant, qu’il semble loin le temps où l’on croyait que l’imagination pourrait s’emparer du pouvoir et changer la vie. En tournant au cauchemar, les grandes utopies du xxe siècle ont-elles à jamais tué dans l’œuf toute aspiration à un avenir meilleur ? Est-il encore possible de rêver un futur désirable en œuvrant sans crainte à son avènement ? Toutes ces questions animent ce numéro 200 du 1qui revient sur plus de deux millénaires de pensées utopistes, tout en interrogeant les principaux défis de notre siècle. Et si le rêve était le grand moteur de l’histoire ?</p>
+          <p id="modal-sommaire"></p>
         </div>
         <div class="ui secondary segment">
-          <p id="modal-tags">utopie;rêve</p>
+          Tags : <p id="modal-tags"></p>
         </div>
       </div>
 
@@ -99,24 +86,30 @@
       <div class="ui form">
         <div class="field">
           <label>URL de la Une</label>
-          <input type="text">
+          <input type="text" id="modal-edit-URL_couv">
         </div>
         <div class="field">
           <label>Numero</label>
-          <input type="text">
+          <input type="text" id="modal-edit-numero">
         </div>
         <!-- A remplacer par un DatePicker -->
+
         <div class="field">
           <label>Date de Parution</label>
-          <input type="text">
+          <div class="ui calendar datepicker">
+            <div class="ui input left icon">
+              <i class="calendar icon"></i>
+              <input id="modal-edit-date_parution" type="text"  placeholder="Date">
+            </div>
+          </div>
         </div>
         <div class="field">
           <label>Sommaire</label>
-          <textarea></textarea>
+          <textarea id="modal-edit-sommaire"></textarea>
         </div>
         <div class="field">
           <label>Tags</label>
-          <input type="text">
+          <input type="text" id="modal-edit-tags">
         </div>     
       </div>    
 
@@ -127,19 +120,63 @@
   </div>
   
   <div class="actions">
+    <div class="modal-btn ui approve right labeled icon button blue" data-value="ajouter">
+      Ajouter une publication
+      <i class="plus icon"></i>
+    </div>
+    <div class="modal-btn ui approve right labeled icon button red" data-value="supprimer">
+      Supprimer la publication
+      <i class="times icon"></i>
+    </div>
+    <div class="modal-btn ui approve right labeled icon button green" data-value="modifier">
+      Valider les modifications
+      <i class="check icon"></i>
+    </div>
+    <div class="modal-btn ui approve button grey" data-value="fermer">
+      Fermer
+    </div>
+  </div>
+
+</div>
+<!-- FIN de modal 1 -->
+
+
+<!-- Modal affiché lors de l'ajout d'une publication -->
+<div class="ui modal" id="newPubModal">
+  <i class="close icon"></i>
+  <div class="header">
+    Créer une nouvelle publication
+  </div>
+  <div class="content">
+    
+    <div class="description">
+      
+      <div class="ui form">
+        <div class="field">
+          <label>Titre</label>
+          <input type="text" id="modal-newPub-titre">
+        </div>
+        <div class="field">
+          <label>Numéro</label>
+          <input type="text" id="modal-newPub-numero">
+        </div>
+      </div>
+    
+    </div>
+  </div>
+  
+  <div class="actions">
     <div class="ui black deny button">
       Annuler
     </div>
     <div class="ui positive right labeled icon button">
-      Valider les modifications
+      Valider
       <i class="checkmark icon"></i>
     </div>
   </div>
 
-<!-- FIN de modal -->
 </div>
-
-  
+<!-- FIN de modal 2 -->
 
   <!-- chargement scripts -->
 

@@ -7,3 +7,7 @@ body {
   margin: 50px;
   background-color: #ddd;
 }
+
+#modal-URL_couv {
+	word-wrap: break-word;
+}

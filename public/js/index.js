@@ -10,104 +10,214 @@ var config = {
 };
 firebase.initializeApp(config);
 
-
-
-var today = new Date();
-
-var periodiciteArray = [
-    { periodicite: 'Hebdomadaire',  jours: 7 },
-    { periodicite: 'Quinzomadaire',  jours: 15 },
-    { periodicite: 'Bimensuel',  jours: 15 },
-    { periodicite: 'Mensuel',  jours: 30 },
-    { periodicite: 'Bimestriel',  jours: 60 },
-    { periodicite: 'Trimestriel', jours: 90 },  
-    //etc       
-    ];
-
-var titresArray = [];
-
-//console.log(periodiciteArray);
-
-
-// Call Database
-
 var publicationsRef = firebase.database().ref().child("publications");
 var titresRef = firebase.database().ref().child("titres");
 
-// Get Snapshot
+var today = new Date();
+
+var periodiciteInt = {
+    'Quotidien' : 1,
+    'Hebdomadaire' : 7,
+    'Quinzomadaire' : 15,
+    'Bimensuel' : 15,
+    'Mensuel' : 30,
+    'Bimestriel' : 60,
+    'Trimestriel' : 90 
+};
+
+
+// Association des actions souhaitées aux boutons du modal
+$('.modal-btn').click(function() {
+
+    var keyPub = $('#editionModal').attr("data-value");
+    var boutonClique = $(this).data("value");
+    //console.log("Clic bouton '" + boutonClique + "' - " + keyPub);
+
+    var edit_URL_couv = $("#modal-edit-URL_couv").val();
+    var edit_numero = $("#modal-edit-numero").val();
+    var edit_tags = $("#modal-edit-tags").val();
+    var edit_sommaire = $("#modal-edit-sommaire").val();
+
+    var current_URL_couv = $("#modal-URL_couv").text();
+    var current_numero = $("#modal-numero").text();
+    var current_tags = $("#modal-tags").text();
+    var current_sommaire = $("#modal-sommaire").text();
+
+    var date_parution = Date.parse($('.datepicker').calendar('get date'));
+
+    switch (boutonClique) {
+        case 'fermer':
+            if(edit_URL_couv != "" || edit_numero != "" || edit_tags != "" || edit_sommaire != "") {
+                if(confirm("Modifications non enregistrées.\nFermer malgré tout ?")) {
+                    $("#editionModal").modal("hide");
+                }
+            }
+            else {
+                $("#editionModal").modal("hide");
+            }
+            break;
+
+        case 'ajouter':
+            if(confirm("Confirmer l'ajout ?")) {
+                // Save it!
+                $("#editionModal").modal("hide");
+            }
+            break;
+
+        case 'supprimer':
+            if(confirm("Confirmer la suppression ?")) {
+                // Save it!
+                $("#editionModal").modal("hide");
+            }
+            break;
+
+        case 'modifier':
+
+            if(date_parution == null) {
+                alert("La date de parution ne peut pas être vide !")
+            }
+            else {
+                if(confirm("Confirmer les modifications ?")) {
+
+                    var publication = {};
+
+                    if(edit_URL_couv != "") {URL_couv = edit_URL_couv;}
+                    else {URL_couv = current_URL_couv;}
+
+                    if(edit_numero != "") {numero = edit_numero;}
+                    else {numero = current_numero;}
+
+                    if(edit_tags != "") {tags = edit_tags;}
+                    else {tags = current_tags;}
+
+                    if(edit_sommaire != "") {sommaire = edit_sommaire;}
+                    else {sommaire = current_sommaire;}
+
+                    publication["URL_couv"] = URL_couv;
+                    publication["numero"] = numero;
+                    publication["tags"] = tags;
+                    publication["sommaire"] = sommaire;
+                    publication["date_parution"] = date_parution;
+
+                    publicationRef = publicationsRef.child(keyPub);
+                    
+                    publicationRef.update(publication)
+                    .then(function() {
+                        modalForm(publication, keyPub);
+                    });
+                    // Save it!
+                }
+            }
+            break;
+    }
+});
+
+
+$('#btn-add_pub').click(function() {
+
+    $('#newPubModal').modal({
+            onApprove : function() { 
+                emptyNewPubModal();
+            },
+
+            onDeny : function() {
+                emptyNewPubModal();
+            }
+        }).modal('show');
+
+});
+
 
 publicationsRef.on("child_added", snapPub => {
 
-    // Collect Card Data
-
-    var key = snapPub.key;
-    var URL_couv = snapPub.child("URL_couv").val();
-    // On enregistre la date de parution sous forme de date
-    var date_parution = new Date(parseInt(snapPub.child("date_parution").val()));
-    var numero = snapPub.child("numero").val();
-    var sommaire = snapPub.child("sommaire").val();    
-    var tags = snapPub.child("tags").val();
     var titre = snapPub.child("titre").val();
+    
+    // On récupère les infos du titre correspondant à la publication
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitres => {
 
-    // On parcourt ensuite la base Titres pour ajouter la periodicite
+        // Rajout de la nouvelle carte à la suite de la précédente
+        $("#cardGrid").append(createCard(snapTitres.val(), snapPub, snapPub.key));
+        
+        bindRibbon(snapPub);
+        
+    });
+
+});
+
+//Actualisation de la carte sur modification des données en base
+publicationsRef.on("child_changed", snapPub => {
+    
+    var titre = snapPub.child("titre").val();
+    var publication = snapPub.val();
+    var key = snapPub.key;
+    var date = new Date(parseInt(publication.date_parution));
+
+    $('#card-' + key + '-header').text(titre + ' n° ' + publication.numero);
+    $('#card-' + key + '-URL_couv').attr('src', publication.URL_couv);
+    $('#card-' + key + '-date_parution').text(date.toLocaleDateString('fr-FR'));
+    $('#card-' + key + '-tags').text(publication.tags);
 
     titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitres => {
 
-        // console.log(titre + " : " + snapTitres.child("periodicite").val());
-
-        var periodicite = snapTitres.child("periodicite").val();
-
-        var periodeJours = periodiciteArray.find( periode => periode.periodicite === periodicite).jours;
-
-        // Creation de l'Array qui contient les infos de chaque titre
-
-        titresArray.push(
-            {
-                key: key,
-                URL_couv: URL_couv,
-                date_parution: date_parution,
-                numero: numero,
-                sommaire: sommaire,
-                tags: tags,
-                titre: titre,
-                periodicite: periodicite,
-                periodeJours: periodeJours
-            }
-        );
-
-        // Append to Card Grid
-
-        $("#cardGrid").append(createCard(titresArray,titre));
-    
-        
-        //remplacement du caractère spécial '&' sinon jQuery le refuse
-        var ribbonId = "#ribbon-" + key;
+        var ribbonId = "#ribbon-" + snapPub.key;
         ribbonId = ribbonId.replace(/&/g, '\\&');
-        //console.log("ribbonId : " + ribbonId);
 
-        // bind de l'événement click au ribbon de la publication qui vient d'être ajouté
-        // sur clic, paramétrage puis affichage de l'élément modal
+        $(ribbonId).remove();
+
+        var periodeJours = periodiciteInt[snapTitres.val().periodicite];
+
+        $('#card-' + key + '-URL_couv').after(ribbonAlert(publication.date_parution, periodeJours, key));
+
+        bindRibbon(snapPub);
         
-        $(ribbonId).click(function() {
-            //alert("clic sur : " + ribbonId);
-            ribbonParent = $(this).parent().parent();
-            pubId = ribbonParent.attr('id');
-            //console.log(pubId);
-
-            modalForm(snapPub.val());
-
-            // On affiche l'élément modal (fonction Semantic UI)
-            $('.ui.modal').modal('show');
-
-        });
-
     });
 
 });
 
 
+// Bind ou actualise le ribbon concerné
+function bindRibbon(snapPub) {
 
-// la fonction suivante renvoie l'élement ribbon HTML/DOM à afficher en fonction de l'urgence de MAJ (utilisé par createCard)
+    //remplacement du caractère spécial '&' sinon jQuery le refuse
+    var ribbonId = "#ribbon-" + snapPub.key;
+    ribbonId = ribbonId.replace(/&/g, '\\&');
+
+    // bind de l'événement click au ribbon de la publication qui vient d'être ajouté
+    // sur clic, paramétrage puis affichage de l'élément modal
+    $(ribbonId).off().click(function() {
+
+        modalForm(snapPub.val(), snapPub.key);
+
+        $('#editionModal').modal({
+            //closable  : false,
+            onApprove : function() { return false; },
+
+            onHidden : function() {
+                emptyEditModal();
+            }
+        }).modal('show');
+
+    });
+
+};
+
+
+// Vide les champs d'édition du Modal de création d'une nouvelle publication
+function emptyNewPubModal () {
+    $("#modal-newPub-titre").val("");
+    $("#modal-newPub-numero").val("");
+}
+
+//Vide les champs d'édition du Modal d'édition, hormis la date de parution
+function emptyEditModal () {
+    $("#modal-edit-numero").val("");
+    $("#modal-edit-URL_couv").val("");
+    $("#modal-edit-sommaire").val("");
+    $("#modal-edit-tags").val("");
+};
+
+
+// La fonction suivante renvoie l'élement ribbon HTML/DOM à afficher en fonction de l'urgence de MAJ (utilisé par createCard)
 function ribbonAlert (date_parution, periodeJours, key) {
     
     // Calcul de la difference entre les dates en jours (arrondi au supérieur)
@@ -121,42 +231,38 @@ function ribbonAlert (date_parution, periodeJours, key) {
     }
 };
 
-// la fonction suivante renvoie l'élement card HTML/DOM en fonction des infos de la publication
-function createCard (titresArray, titre) {
+// La fonction suivante renvoie l'élement card HTML/DOM en fonction des infos de la publication
+function createCard (titre, snapPublication) {
     
-    var key = titresArray.find ( titresArray => titresArray.titre === titre).key;    
-    var URL_couv = titresArray.find ( titresArray => titresArray.titre === titre).URL_couv;
-    var date_parution = titresArray.find ( titresArray => titresArray.titre === titre).date_parution;
-    var numero = titresArray.find ( titresArray => titresArray.titre === titre).numero;
-    // var sommaire = titresArray.find ( titresArray => titresArray.titre === titre).sommaire;
-    var tags = titresArray.find ( titresArray => titresArray.titre === titre).tags;
-    var titre = titresArray.find ( titresArray => titresArray.titre === titre).titre;
-    var periodicite = titresArray.find ( titresArray => titresArray.titre === titre).periodicite;
-    var periodeJours = titresArray.find ( titresArray => titresArray.titre === titre).periodeJours;
+    var publication = snapPublication.val();
+    var key = snapPublication.key;
+
+    var periodeJours = periodiciteInt[titre.periodicite];
+    var date = new Date(parseInt(publication.date_parution));
 
     cardString = '';
     cardString += '<div class="pubcard ui raised card" id="' + key + '">'
     cardString +=  '<div class="image">'
-    cardString +=    '<img src="' + URL_couv + '">'
-    cardString +=    ribbonAlert(date_parution, periodeJours, key)
+    cardString +=    '<img src="' + publication.URL_couv + '" id="card-' + key + '-URL_couv">'
+    cardString +=    ribbonAlert(publication.date_parution, periodeJours, key)
     cardString +=   '</div>'
     cardString +=  '<div class="content">'
-    cardString +=  '<a class="header">' + titre + ' n° ' + numero + '</a>'
+    cardString +=  '<a class="header" id="card-' + key + '-header">' + publication.titre + ' n° ' + publication.numero + '</a>'
     cardString +=    '<div class="meta">'
     // On transforme la date au format français avant de l'afficher
-    cardString +=      '<span class="date">' + date_parution.toLocaleDateString('fr-FR') + '</span>'
+    cardString +=      '<span class="date" id="card-' + key + '-date_parution">' + date.toLocaleDateString('fr-FR') + '</span>'
     cardString +=    '</div>'
     cardString +=  '</div>'
     cardString +=  '<div class="extra content">'
     cardString +=    '<a>'
     cardString +=      '<i class="hashtag icon"></i>'
-    cardString +=      '<a>' + tags + '</a>'
+    cardString +=      '<a id="card-' + key + '-tags">' + publication.tags + '</a>'
     cardString +=    '</a>'
     cardString +=  '</div>'
-    cardString +=  '<div class="ui bottom attached teal button">'
-    cardString +=    '<i class="list icon"></i>'
-    cardString +=    'Voir Sommaire'
-    cardString +=  '</div>'
+    //cardString +=  '<div class="ui bottom attached teal button">'
+    //cardString +=    '<i class="list icon"></i>'
+    //cardString +=    'Voir Sommaire'
+    //cardString +=  '</div>'
     cardString += '</div>'
 
     return(cardString);
@@ -164,16 +270,16 @@ function createCard (titresArray, titre) {
 }
 
 
+// Modification du modal en fonction de la publication concernée
+function modalForm(publication, key) {
 
-function modalForm(publication) {
-
-    // fonction qui modifie / recrée le modal (voir HTML)
+    emptyEditModal();
 
     //titre
     $("#modal-titre").text(publication.titre);
 
     //header sommaire
-    $("#modal-headerSommaire").text("Sommaire du n°" + publication.numero);
+    $("#modal-numero").text(publication.numero);
 
     //URL couverture
     $("#modal-URL_couv").text(publication.URL_couv);
@@ -188,8 +294,31 @@ function modalForm(publication) {
 
     //image couverture
     $("#modal-couv").attr("src", publication.URL_couv);
+
+    $("#editionModal").attr("data-value", key);
+   
+    $(function() {
+        $('.datepicker').calendar({
+          type: 'date',
+          formatter: {
+            date: function (date, settings) {
+              if (!date) return '';
+              var day = date.getDate();
+              var month = date.getMonth() + 1;
+              var year = date.getFullYear();
+              return day + '/' + month + '/' + year;
+            }
+          }
+        });
+
+        $('.datepicker').calendar('set date', new Date(parseInt(publication.date_parution)));
+
+    });
+    
 };
 
+
+// Sauvegarde des nouvelles données de la publication en BDD
 function submitPub() {
 
     // fonction qui enregistre en base le formulaire du modal

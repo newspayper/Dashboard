@@ -447,8 +447,10 @@ function modalForm(publication, key) {
     $("#modal-URL_couv").attr("target", "_blank");
 
     //Sommaire correctement mis en forme avec des sauts de ligne
-    $("#modal-sommaire").html((publication.sommaire).replace(/\n\r?/g, '<br \\>'));
-
+    if(publication.sommaire != undefined) {
+        $("#modal-sommaire").html((publication.sommaire).replace(/\n\r?/g, '<br \\>'));
+    }
+    
     //Sommaire caché pour avoir sa vraie valeur
     $("#modal-sommaire-hidden").text(publication.sommaire);
 

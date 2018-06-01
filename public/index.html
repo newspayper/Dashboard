@@ -51,7 +51,7 @@
   
   <!-- Début des éléments à modifier dynamiquement -->
 
-  <div class="header" id="modal-titre"></div>
+  <div class="header" id="modal-edit-titre"></div>
   
   <div class="image content">
     
@@ -120,19 +120,19 @@
   </div>
   
   <div class="actions">
-    <div class="modal-btn ui approve right labeled icon button blue" data-value="ajouter">
+    <div class="modal-edit-btn ui approve right labeled icon button blue" data-value="ajouter">
       Ajouter une publication
       <i class="plus icon"></i>
     </div>
-    <div class="modal-btn ui approve right labeled icon button red" data-value="supprimer">
+    <div class="modal-edit-btn ui approve right labeled icon button red" data-value="supprimer">
       Supprimer la publication
       <i class="times icon"></i>
     </div>
-    <div class="modal-btn ui approve right labeled icon button green" data-value="modifier">
+    <div class="modal-edit-btn ui approve right labeled icon button green" data-value="modifier">
       Valider les modifications
       <i class="check icon"></i>
     </div>
-    <div class="modal-btn ui approve button grey" data-value="fermer">
+    <div class="modal-edit-btn ui approve button grey" data-value="fermer">
       Fermer
     </div>
   </div>
@@ -151,10 +151,31 @@
     
     <div class="description">
       
+      <div class="ui search" id="search-bar">
+        <div class="ui icon input">
+          <input class="prompt" type="text" id="inp-searchBar" placeholder="Chercher titres...">
+          <i class="black  search icon"></i>
+        </div>
+        <div class="results"></div>
+      </div>
+
+
+          <!--
+          <script src="js/search.js"></script>
+          -->
+
+      <div id="logo-publication">
+        <img id="logo-publicationURL" class="ui medium rounded image" src=""> 
+      </div>     
+
+      <!--
+      <button id="selectionTitre" class="ui green button">Ajouter</button>
+      -->
+
       <div class="ui form">
         <div class="field">
           <label>Titre</label>
-          <input type="text" id="modal-newPub-titre">
+          <input type="text" id="modal-newPub-titre" disabled>
         </div>
         <div class="field">
           <label>Numéro</label>
@@ -166,10 +187,10 @@
   </div>
   
   <div class="actions">
-    <div class="ui black deny button">
+    <div class="modal-newPub-btn ui black approve button" data-value="Annuler">
       Annuler
     </div>
-    <div class="ui positive right labeled icon button">
+    <div class="modal-newPub-btn ui blue approve right labeled icon button" data-value="Valider">
       Valider
       <i class="checkmark icon"></i>
     </div>

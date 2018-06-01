@@ -25,9 +25,13 @@ var periodiciteInt = {
     'Trimestriel' : 90 
 };
 
+var arraychoixTitre = [];
+var titresArray = [];
+var searchtitresArray = [];
 
-// Association des actions souhaitées aux boutons du modal
-$('.modal-btn').click(function() {
+
+// Association des actions souhaitées aux boutons du modal d'édition
+$('.modal-edit-btn').click(function() {
 
     var keyPub = $('#editionModal').attr("data-value");
     var boutonClique = $(this).data("value");
@@ -42,6 +46,8 @@ $('.modal-btn').click(function() {
     var current_numero = $("#modal-numero").text();
     var current_tags = $("#modal-tags").text();
     var current_sommaire = $("#modal-sommaire").text();
+
+    var titre = $("#modal-edit-titre").text();
 
     var date_parution = Date.parse($('.datepicker').calendar('get date'));
 
@@ -104,6 +110,9 @@ $('.modal-btn').click(function() {
                     publicationRef.update(publication)
                     .then(function() {
                         modalForm(publication, keyPub);
+
+                        titresRef.child(removeAccentsSpaces(titre)).child("publications").child(keyPub).update(publication);
+
                     });
                     // Save it!
                 }
@@ -112,20 +121,139 @@ $('.modal-btn').click(function() {
     }
 });
 
+// Association des actions souhaitées aux boutons du modal de rajout de publication
+$('.modal-newPub-btn').click(function() {
 
-$('#btn-add_pub').click(function() {
+    var boutonClique = $(this).data("value");
 
-    $('#newPubModal').modal({
-            onApprove : function() { 
-                emptyNewPubModal();
-            },
+    var newPub_titre = $("#modal-newPub-titre").val();
+    var newPub_numero = $("#modal-newPub-numero").val();
 
-            onDeny : function() {
-                emptyNewPubModal();
+    console.log("Ajout publication, clic bouton '" + boutonClique);
+    switch (boutonClique) {
+        case 'Annuler':
+
+            if(newPub_titre != "" || newPub_numero != "") {
+                if(confirm("Modifications non enregistrées.\nFermer malgré tout ?")) {
+                    emptyNewPubModal();
+                    $("#newPubModal").modal("hide");
+                }
             }
-        }).modal('show');
+            else {
+                emptyNewPubModal();
+                $("#newPubModal").modal("hide");
+            }
+
+            break;
+
+        case 'Valider' :
+
+            if(newPub_titre == "" || newPub_numero == "") {
+                alert("Les deux champs doivent être remplis !");
+            }
+            else {
+                if(confirm("Confirmer l'ajout de la publication' ?")) {
+                    var newProprietes = {};
+
+                    newProprietes["titre"] = newPub_titre;
+                    newProprietes["numero"] = newPub_numero;
+                
+                    var newPublication = {};
+                    var keyPub = removeAccentsSpaces(newPub_titre + "_" + newPub_numero);
+
+                    console.log("keyPub = " + keyPub);
+                    console.log("newProprietes = " + JSON.stringify(newProprietes));
+
+                    newPublication["/" + keyPub + "/"] = newProprietes;
+                
+                    publicationsRef.update(newPublication)
+                    .then(function() {
+
+                        titresRef.child(removeAccentsSpaces(newPub_titre)).child("publications").update(newPublication)
+                        .then(function() {
+
+                            console.log("Publication ajoutée : " + keyPub);
+                            emptyNewPubModal();
+                            $("#newPubModal").modal("hide");
+                        });
+
+                    });
+
+                }
+            }
+
+            break;
+    }
 
 });
+
+// Ouverture du modal sur clic sur le bouton d'ajout de publication
+$('#btn-add_pub').click(function() {
+
+    emptyNewPubModal();
+
+    $('#newPubModal').modal({
+
+        onApprove : function() { return false; },
+
+        onHidden : function() {
+            emptyNewPubModal();
+        }
+    }).modal('show');
+
+});
+
+//Remplissage des tableaux des titres et de recherche titres
+titresRef.on("child_added", snap => {
+
+    var URL_logo = snap.child("URL_logo").val();
+    var description = snap.child("description").val();
+    var nom = snap.child("nom").val();
+    var periodicite = snap.child("periodicite").val();
+
+    titresArray.push(
+      {
+        URL_logo: URL_logo,
+        description: description,
+        nom:nom,
+        periodicite:periodicite
+      }
+     
+    );
+
+    searchtitresArray.push(
+      {
+        category:periodicite,
+        title:nom
+      }
+     
+    );
+
+    //initialisation des élements de la fonction recherche (synchrone)
+    $('.ui.search') 
+    .search({
+      type: 'category',
+      source: searchtitresArray
+    });
+
+});
+
+$("#search-bar").on("click", function() {
+  displayTitre();
+});
+
+function displayTitre() {
+
+  // on écrit le resultat de getvalue dans choixTitre
+  var choixTitre = $('.ui.search').search('get value');
+  //console.log(choixTitre);
+
+  // on cherche l'objet correspondant
+  arraychoixTitre = titresArray.find(k => k.nom==choixTitre);
+  $("#logo-publicationURL").attr("src", arraychoixTitre.URL_logo);
+  $("#modal-newPub-titre").val(arraychoixTitre.nom);
+}
+
 
 
 publicationsRef.on("child_added", snapPub => {
@@ -206,6 +334,9 @@ function bindRibbon(snapPub) {
 function emptyNewPubModal () {
     $("#modal-newPub-titre").val("");
     $("#modal-newPub-numero").val("");
+    $("#inp-searchBar").val("");
+    $("#logo-publicationURL").attr("src", "");
+
 }
 
 //Vide les champs d'édition du Modal d'édition, hormis la date de parution
@@ -276,7 +407,7 @@ function modalForm(publication, key) {
     emptyEditModal();
 
     //titre
-    $("#modal-titre").text(publication.titre);
+    $("#modal-edit-titre").text(publication.titre);
 
     //header sommaire
     $("#modal-numero").text(publication.numero);
@@ -318,61 +449,23 @@ function modalForm(publication, key) {
 };
 
 
-// Sauvegarde des nouvelles données de la publication en BDD
-function submitPub() {
 
-    // fonction qui enregistre en base le formulaire du modal
-
-};
-
-//sert pu à rien
-function pubObject(pubId){
-
-    // fonction qui crée l'array d'elements qui seront utilisés dans l'affichage du modal (pop-up)
-
-    var publicationsRef = firebase.database().ref().child("publications");
-
-    publicationsRef.child(pubId).once('value').then(function(snapshot) {
-
-        //console.log(JSON.stringify(snapshot));
-
-        this.sommaire = snapshot.child("sommaire").val();
-        this.tags = snapshot.child("tags").val();
-        this.numero = snapshot.child("numero").val();
-        this.date_parution = snapshot.child("date_parution").val();
-        this.URL_couv = snapshot.child("URL_couv").val();
-        this.id = pubId;
-
-        //console.log("Objet rempli à partir de la BDD : " + JSON.stringify(publication));
-
-    });
-
-};
-
-//sert pu à rien
-function createPubObject(pubId){
-
-    // fonction qui crée l'array d'elements qui seront utilisés dans l'affichage du modal (pop-up)
-
-    var publicationsRef = firebase.database().ref().child("publications");
-
-    publicationsRef.child(pubId).once('value').then(function(snapshot) {
-
-        //console.log(JSON.stringify(snapshot));
-        
-        var publication = {};
-
-        publication["sommaire"] = snapshot.child("sommaire").val();
-        publication["tags"] = snapshot.child("tags").val();
-        publication["numero"] = snapshot.child("numero").val();
-        publication["date_parution"] = snapshot.child("date_parution").val();
-        publication["URL_couv"] = snapshot.child("URL_couv").val();
-        publication["id"] = pubId;
-
-        //console.log("Objet rempli à partir de la BDD : " + JSON.stringify(publication));
-
-        return publication;
-
-    });
-
-};
+function removeAccentsSpaces(str) {
+  var accents    = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
+  var accentsOut = "AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz";
+  str = str.split('');
+  var strLen = str.length;
+  var i, x;
+  for (i = 0; i < strLen; i++) {
+    if ((x = accents.indexOf(str[i])) != -1) {
+      str[i] = accentsOut[x];
+    }
+  }
+  
+  str = str.join('');
+  str = str.replace(/\s+/g, '');
+  str = str.replace(/\'/g, '');
+  str = str.replace(/,/g, '');
+  
+  return str;
+}

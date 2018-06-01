@@ -45,7 +45,7 @@ $('.modal-edit-btn').click(function() {
     var current_URL_couv = $("#modal-URL_couv").text();
     var current_numero = $("#modal-numero").text();
     var current_tags = $("#modal-tags").text();
-    var current_sommaire = $("#modal-sommaire").text();
+    var current_sommaire = $("#modal-sommaire-hidden").text();
 
     var titre = $("#modal-edit-titre").text();
 
@@ -139,13 +139,14 @@ $('.modal-newPub-btn').click(function() {
     var boutonClique = $(this).data("value");
 
     var newPub_titre = $("#modal-newPub-titre").val();
+    var newPub_titreShort = $("#modal-newPub-titreShort").val();
     var newPub_numero = $("#modal-newPub-numero").val();
 
     console.log("Ajout publication, clic bouton '" + boutonClique);
     switch (boutonClique) {
         case 'Annuler':
 
-            if(newPub_titre != "" || newPub_numero != "") {
+            if(newPub_titre != "" || newPub_numero != "" || newPub_titreShort != "") {
                 if(confirm("Modifications non enregistrées.\nFermer malgré tout ?")) {
                     emptyNewPubModal();
                     $("#newPubModal").modal("hide");
@@ -168,13 +169,14 @@ $('.modal-newPub-btn').click(function() {
                     var newProprietes = {};
 
                     newProprietes["titre"] = newPub_titre;
+                    newProprietes["titre_short"] = newPub_titreShort;
                     newProprietes["numero"] = newPub_numero;
                 
                     var newPublication = {};
                     var keyPub = removeAccentsSpaces(newPub_titre + "_" + newPub_numero);
 
-                    console.log("keyPub = " + keyPub);
-                    console.log("newProprietes = " + JSON.stringify(newProprietes));
+                    //console.log("keyPub = " + keyPub);
+                    //console.log("newProprietes = " + JSON.stringify(newProprietes));
 
                     newPublication["/" + keyPub + "/"] = newProprietes;
                 
@@ -221,6 +223,7 @@ titresRef.on("child_added", snap => {
     var URL_logo = snap.child("URL_logo").val();
     var description = snap.child("description").val();
     var nom = snap.child("nom").val();
+    var nom_short = snap.child("nom_short").val();
     var periodicite = snap.child("periodicite").val();
 
     titresArray.push(
@@ -228,6 +231,7 @@ titresRef.on("child_added", snap => {
         URL_logo: URL_logo,
         description: description,
         nom:nom,
+        nom_short:nom_short,
         periodicite:periodicite
       }
      
@@ -258,12 +262,12 @@ function displayTitre() {
 
   // on écrit le resultat de getvalue dans choixTitre
   var choixTitre = $('.ui.search').search('get value');
-  //console.log(choixTitre);
 
   // on cherche l'objet correspondant
   arraychoixTitre = titresArray.find(k => k.nom==choixTitre);
   $("#logo-publicationURL").attr("src", arraychoixTitre.URL_logo);
   $("#modal-newPub-titre").val(arraychoixTitre.nom);
+  $("#modal-newPub-titreShort").val(arraychoixTitre.nom_short);
 }
 
 publicationsRef.on("child_removed", snapPub => {
@@ -349,6 +353,7 @@ function bindRibbon(snapPub) {
 // Vide les champs d'édition du Modal de création d'une nouvelle publication
 function emptyNewPubModal () {
     $("#modal-newPub-titre").val("");
+    $("#modal-newPub-titreShort").val("");
     $("#modal-newPub-numero").val("");
     $("#inp-searchBar").val("");
     $("#logo-publicationURL").attr("src", "");
@@ -441,8 +446,11 @@ function modalForm(publication, key) {
     $("#modal-URL_couv").attr("href", publication.URL_couv);
     $("#modal-URL_couv").attr("target", "_blank");
 
-    //sommaire
-    $("#modal-sommaire").text(publication.sommaire);
+    //Sommaire correctement mis en forme avec des sauts de ligne
+    $("#modal-sommaire").html((publication.sommaire).replace(/\n\r?/g, '<br \\>'));
+
+    //Sommaire caché pour avoir sa vraie valeur
+    $("#modal-sommaire-hidden").text(publication.sommaire);
 
     //tags
     $("#modal-tags").text(publication.tags);

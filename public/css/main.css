@@ -11,3 +11,7 @@ body {
 #modal-URL_couv {
 	word-wrap: break-word;
 }
+
+.resizable {
+	resize: both !important;
+}

@@ -354,17 +354,25 @@ function emptyNewPubModal () {
     $("#logo-publicationURL").attr("src", "");
 }
 
-//Vide les champs d'édition du Modal d'édition, hormis la date de parution
+//Vide les champs du Modal d'édition, hormis la date de parution
 function emptyEditModal () {
+    $("#modal-couv").attr("src", "");
+    $("#modal-URL_couv").attr("href", "");
+    $("#modal-URL_couv").text("");
+    $("#modal-sommaire").text("");
+    $("#modal-tags").text("");
+
     $("#modal-edit-numero").val("");
     $("#modal-edit-URL_couv").val("");
     $("#modal-edit-sommaire").val("");
     $("#modal-edit-tags").val("");
+    
     $("#modal-edit-deleteHisto").checkbox("set unchecked");
+
 };
 
 
-// La fonction suivante renvoie l'élement ribbon HTML/DOM à afficher en fonction de l'urgence de MAJ (utilisé par createCard)
+// Renvoie l'élement ribbon à afficher en fonction de l'urgence de MAJ
 function ribbonAlert (date_parution, periodeJours, key) {
     
     // Calcul de la difference entre les dates en jours (arrondi au supérieur)
@@ -378,7 +386,7 @@ function ribbonAlert (date_parution, periodeJours, key) {
     }
 };
 
-// La fonction suivante renvoie l'élement card HTML/DOM en fonction des infos de la publication
+// Renvoie l'élement card en fonction des infos de la publication
 function createCard (titre, snapPublication) {
     
     var publication = snapPublication.val();
@@ -417,7 +425,7 @@ function createCard (titre, snapPublication) {
 }
 
 
-// Modification du modal en fonction de la publication concernée
+// Modification du modal d'édition en fonction de la publication concernée
 function modalForm(publication, key) {
 
     emptyEditModal();
@@ -465,7 +473,7 @@ function modalForm(publication, key) {
 };
 
 
-
+//Supprime les espaces & les accents, pour obtention des clés firebase associées aux publications
 function removeAccentsSpaces(str) {
   var accents    = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
   var accentsOut = "AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz";

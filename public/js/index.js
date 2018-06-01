@@ -65,15 +65,27 @@ $('.modal-edit-btn').click(function() {
 
         case 'ajouter':
             if(confirm("Confirmer l'ajout ?")) {
-                // Save it!
+                
                 $("#editionModal").modal("hide");
             }
             break;
 
         case 'supprimer':
             if(confirm("Confirmer la suppression ?")) {
-                // Save it!
+                
+                publicationsRef.child(keyPub).remove();
+
+                var checked = $("#modal-edit-deleteHisto").checkbox("is checked");
+                
+                
+                if($("#modal-edit-deleteHisto").checkbox("is checked")) {
+                    if(confirm("ATTENTION, suppression de la publication\n dans l'historique.\n Confirmer ?")) {
+                        titresRef.child(removeAccentsSpaces(titre)).child("publications").child(keyPub).remove();
+                    }
+                }
                 $("#editionModal").modal("hide");
+                        
+    
             }
             break;
 
@@ -152,7 +164,7 @@ $('.modal-newPub-btn').click(function() {
                 alert("Les deux champs doivent être remplis !");
             }
             else {
-                if(confirm("Confirmer l'ajout de la publication' ?")) {
+                if(confirm("Confirmer l'ajout de la publication ?")) {
                     var newProprietes = {};
 
                     newProprietes["titre"] = newPub_titre;
@@ -254,7 +266,11 @@ function displayTitre() {
   $("#modal-newPub-titre").val(arraychoixTitre.nom);
 }
 
+publicationsRef.on("child_removed", snapPub => {
 
+    $('#' + snapPub.key).remove();
+
+});
 
 publicationsRef.on("child_added", snapPub => {
 
@@ -336,7 +352,6 @@ function emptyNewPubModal () {
     $("#modal-newPub-numero").val("");
     $("#inp-searchBar").val("");
     $("#logo-publicationURL").attr("src", "");
-
 }
 
 //Vide les champs d'édition du Modal d'édition, hormis la date de parution
@@ -345,6 +360,7 @@ function emptyEditModal () {
     $("#modal-edit-URL_couv").val("");
     $("#modal-edit-sommaire").val("");
     $("#modal-edit-tags").val("");
+    $("#modal-edit-deleteHisto").checkbox("set unchecked");
 };
 
 

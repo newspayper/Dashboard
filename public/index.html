@@ -120,9 +120,16 @@
   </div>
   
   <div class="actions">
+    <!--
     <div class="modal-edit-btn ui approve right labeled icon button blue" data-value="ajouter">
       Ajouter une publication
       <i class="plus icon"></i>
+    </div>
+    -->
+    
+    <div class="ui checkbox" id="modal-edit-deleteHisto">
+      <input name="example" type="checkbox">
+      <label>Supprimer aussi dans l'historique</label>
     </div>
     <div class="modal-edit-btn ui approve right labeled icon button red" data-value="supprimer">
       Supprimer la publication
@@ -167,10 +174,6 @@
       <div id="logo-publication">
         <img id="logo-publicationURL" class="ui medium rounded image" src=""> 
       </div>     
-
-      <!--
-      <button id="selectionTitre" class="ui green button">Ajouter</button>
-      -->
 
       <div class="ui form">
         <div class="field">

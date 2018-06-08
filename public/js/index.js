@@ -126,7 +126,6 @@ $('.modal-edit-btn').click(function() {
                         titresRef.child(removeAccentsSpaces(titre)).child("publications").child(keyPub).update(publication);
 
                     });
-                    // Save it!
                 }
             }
             break;
@@ -281,12 +280,12 @@ publicationsRef.on("child_added", snapPub => {
     var titre = snapPub.child("titre").val();
     
     // On récupère les infos du titre correspondant à la publication
-    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitres => {
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
 
         // Rajout de la nouvelle carte à la suite de la précédente
-        $("#cardGrid").append(createCard(snapTitres.val(), snapPub, snapPub.key));
+        $("#cardGrid").append(createCard(snapTitre.val(), snapPub, snapPub.key));
         
-        bindRibbon(snapPub);
+        bindRibbon(snapPub, snapTitre);
         
     });
 
@@ -305,14 +304,14 @@ publicationsRef.on("child_changed", snapPub => {
     $('#card-' + key + '-date_parution').text(date.toLocaleDateString('fr-FR'));
     $('#card-' + key + '-tags').text(publication.tags);
 
-    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitres => {
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
 
         var ribbonId = "#ribbon-" + snapPub.key;
         ribbonId = ribbonId.replace(/&/g, '\\&');
 
         $(ribbonId).remove();
 
-        var periodeJours = periodiciteInt[snapTitres.val().periodicite];
+        var periodeJours = periodiciteInt[snapTitre.val().periodicite];
 
         $('#card-' + key + '-URL_couv').after(ribbonAlert(publication.date_parution, periodeJours, key));
 
@@ -324,7 +323,7 @@ publicationsRef.on("child_changed", snapPub => {
 
 
 // Bind ou actualise le ribbon concerné
-function bindRibbon(snapPub) {
+function bindRibbon(snapPub, snapTitre) {
 
     //remplacement du caractère spécial '&' sinon jQuery le refuse
     var ribbonId = "#ribbon-" + snapPub.key;
@@ -334,7 +333,7 @@ function bindRibbon(snapPub) {
     // sur clic, paramétrage puis affichage de l'élément modal
     $(ribbonId).off().click(function() {
 
-        modalForm(snapPub.val(), snapPub.key);
+        modalForm(snapPub.val(), snapPub.key, snapTitre.val());
 
         $('#editionModal').modal({
             //closable  : false,
@@ -431,7 +430,7 @@ function createCard (titre, snapPublication) {
 
 
 // Modification du modal d'édition en fonction de la publication concernée
-function modalForm(publication, key) {
+function modalForm(publication, key, titre) {
 
     emptyEditModal();
 
@@ -479,6 +478,56 @@ function modalForm(publication, key) {
         $('.datepicker').calendar('set date', new Date(parseInt(publication.date_parution)));
 
     });
+
+    if(titre.liens != undefined) {
+
+        var source1 = titre.liens.source1;
+        if(source1 == undefined) {
+            $("#btn-source1").hide().off();
+        }
+        else {
+            $("#btn-source1").show().off().click(function() {
+                var win = window.open(source1);
+            });
+        }
+        
+        var source2 = titre.liens.source2;
+        if(source2 == undefined) {
+            $("#btn-source2").hide().off();
+        }
+        else {
+            $("#btn-source2").show().off().click(function() {
+                var win = window.open(source2);
+            });
+        }
+
+        var journaux_fr = titre.liens.journaux_fr;
+        if(journaux_fr == undefined) {
+            $("#btn-journaux_fr").hide().off();
+        }
+        else {
+            $("#btn-journaux_fr").show().off().click(function() {
+                var win = window.open(journaux_fr);
+            });
+        }
+
+        var epresse = titre.liens.epresse;
+        if(epresse == undefined) {
+            $("#btn-epresse").hide().off();
+        }
+        else {
+            $("#btn-epresse").show().off().click(function() {
+                var win = window.open(epresse);
+            });
+        }
+
+    }
+    else {
+        $("#btn-source1").hide().off();
+        $("#btn-source2").hide().off();
+        $("#btn-journaux_fr").hide().off();
+        $("#btn-epresse").hide().off();
+    }
     
 };
 

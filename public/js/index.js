@@ -121,7 +121,7 @@ $('.modal-edit-btn').click(function() {
                     
                     publicationRef.update(publication)
                     .then(function() {
-                        modalForm(publication, keyPub);
+                        modalForm(publication, keyPub); //le 3e argument est undefined si pas passé
 
                         titresRef.child(removeAccentsSpaces(titre)).child("publications").child(keyPub).update(publication);
 
@@ -315,7 +315,7 @@ publicationsRef.on("child_changed", snapPub => {
 
         $('#card-' + key + '-URL_couv').after(ribbonAlert(publication.date_parution, periodeJours, key));
 
-        bindRibbon(snapPub);
+        bindRibbon(snapPub, snapTitre);
         
     });
 
@@ -364,6 +364,7 @@ function emptyEditModal () {
     $("#modal-URL_couv").attr("href", "");
     $("#modal-URL_couv").text("");
     $("#modal-sommaire").text("");
+    $("#modal-sommaire-hidden").text("");
     $("#modal-tags").text("");
 
     $("#modal-edit-numero").val("");
@@ -479,50 +480,60 @@ function modalForm(publication, key, titre) {
 
     });
 
-    if(titre.liens != undefined) {
+    var cacher_sources = false;
+    if(titre != undefined) {
+        if(titre.liens != undefined) {
 
-        var source1 = titre.liens.source1;
-        if(source1 == undefined) {
-            $("#btn-source1").hide().off();
+            var source1 = titre.liens.source1;
+            if(source1 == undefined) {
+                $("#btn-source1").hide().off();
+            }
+            else {
+                $("#btn-source1").show().off().click(function() {
+                    var win = window.open(source1);
+                });
+            }
+            
+            var source2 = titre.liens.source2;
+            if(source2 == undefined) {
+                $("#btn-source2").hide().off();
+            }
+            else {
+                $("#btn-source2").show().off().click(function() {
+                    var win = window.open(source2);
+                });
+            }
+
+            var journaux_fr = titre.liens.journaux_fr;
+            if(journaux_fr == undefined) {
+                $("#btn-journaux_fr").hide().off();
+            }
+            else {
+                $("#btn-journaux_fr").show().off().click(function() {
+                    var win = window.open(journaux_fr);
+                });
+            }
+
+            var epresse = titre.liens.epresse;
+            if(epresse == undefined) {
+                $("#btn-epresse").hide().off();
+            }
+            else {
+                $("#btn-epresse").show().off().click(function() {
+                    var win = window.open(epresse);
+                });
+            }
+
         }
         else {
-            $("#btn-source1").show().off().click(function() {
-                var win = window.open(source1);
-            });
+            cacher_sources = true;
         }
-        
-        var source2 = titre.liens.source2;
-        if(source2 == undefined) {
-            $("#btn-source2").hide().off();
-        }
-        else {
-            $("#btn-source2").show().off().click(function() {
-                var win = window.open(source2);
-            });
-        }
-
-        var journaux_fr = titre.liens.journaux_fr;
-        if(journaux_fr == undefined) {
-            $("#btn-journaux_fr").hide().off();
-        }
-        else {
-            $("#btn-journaux_fr").show().off().click(function() {
-                var win = window.open(journaux_fr);
-            });
-        }
-
-        var epresse = titre.liens.epresse;
-        if(epresse == undefined) {
-            $("#btn-epresse").hide().off();
-        }
-        else {
-            $("#btn-epresse").show().off().click(function() {
-                var win = window.open(epresse);
-            });
-        }
-
     }
     else {
+        cacher_sources = true;
+    }
+
+    if(cacher_sources) {
         $("#btn-source1").hide().off();
         $("#btn-source2").hide().off();
         $("#btn-journaux_fr").hide().off();

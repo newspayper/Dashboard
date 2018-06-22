@@ -41,11 +41,9 @@ var nbLogs = 0;
 //recup des logs
 usersRef.on("child_added", snapUser => {
 
-    
-
     var user = snapUser.val();
     var logs = user.logs;
-    var key = snapUser.key;    
+    var key = snapUser.key;
 
     if(logs != undefined) {
 
@@ -72,6 +70,7 @@ usersRef.on("child_added", snapUser => {
             data_users.push(
                 {
                     messengerUserId: user.messengerUserId,
+                    nom: user.nom,
                     timestamp: attr.timestamp,
                     contenu_envoye: contenu_envoye,
                     last_input: last_input,

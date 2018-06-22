@@ -49,7 +49,10 @@ $('.modal-edit-btn').click(function() {
 
     var titre = $("#modal-edit-titre").text();
 
-    var date_parution = Date.parse($('.datepicker').calendar('get date'));
+    var date_parution = new Date(Date.parse($('.datepicker').calendar('get date')));
+
+    date_parution.setHours(0,0,0); //on se met à minuit
+
 
     switch (boutonClique) {
         case 'fermer':
@@ -115,7 +118,7 @@ $('.modal-edit-btn').click(function() {
                     publication["numero"] = numero;
                     publication["tags"] = tags;
                     publication["sommaire"] = sommaire;
-                    publication["date_parution"] = date_parution;
+                    publication["date_parution"] = date_parution.getTime();
 
                     publicationRef = publicationsRef.child(keyPub);
                     

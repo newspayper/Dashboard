@@ -345,7 +345,7 @@ function bindRibbon(snapPub, snapTitre) {
             onHidden : function() {
                 emptyEditModal();
             }
-        }).modal('show');
+        }).modal('setting', 'closable', false).modal('show');
 
     });
 

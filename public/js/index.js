@@ -389,7 +389,7 @@ function ribbonAlert (date_parution, periodeJours, key) {
     
     var reste = periodeJours - diff;
     if (reste < 3) {
-      return '<a class="ui red ribbon label" id="ribbon-' + key + '">MAJ REQUISE</a>';
+      return '<a class="ui red ribbon label" id="ribbon-' + key + '">RESTE '+ reste + ' JOURS</a>' ;
     } else {
       return '<a class="ui green ribbon label" id="ribbon-' + key + '">RESTE '+ reste + ' JOURS</a>' ;
     }

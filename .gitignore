@@ -1,6 +1,9 @@
 
 firebase.json
 .firebaserc
+.firebase
+package-lock.json
 $RESOURCE_DIR
 public/node_modules
 public/semantic
+public/package-lock.json

@@ -13,6 +13,7 @@ firebase.initializeApp(config);
 var publicationsRef = firebase.database().ref().child("publications");
 var titresRef = firebase.database().ref().child("titres");
 
+
 var today = new Date();
 
 var periodiciteInt = {
@@ -448,6 +449,16 @@ function modalForm(publication, key, titre) {
     $("#modal-URL_couv").text(publication.URL_couv);
     $("#modal-URL_couv").attr("href", publication.URL_couv);
     $("#modal-URL_couv").attr("target", "_blank");
+
+    $('#modal-btn-uploadCloudinary').click(function() {
+        var URL_preprocess = $("#modal-URL_couv").val();
+
+        cloudinary.openUploadWidget({ cloud_name: 'newspayper', upload_preset: 'd6z1n7ys'}, 
+            function(error, result) { 
+                console.log(error, result) 
+            });
+        
+    });
 
     //Sommaire correctement mis en forme avec des sauts de ligne
     if(publication.sommaire != undefined) {

@@ -1,0 +1,6 @@
+
+firebase.json
+.firebaserc
+$RESOURCE_DIR
+public/node_modules
+public/semantic

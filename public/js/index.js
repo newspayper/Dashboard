@@ -26,6 +26,19 @@ var periodiciteInt = {
     'Trimestriel' : 90 
 };
 
+var periodiciteAnnonce = {
+    'Quotidien' : "Aujourd'hui",
+    'Hebdomadaire' : "Cette semaine",
+    'Quinzomadaire' : "Cette quinzaine",
+    'Bimensuel' : "Ce mois-ci",
+    'Mensuel' : "Ce mois-ci",
+    'Bimestriel' : "Ce mois-ci",
+    'Trimestriel' : "Ce mois-ci" 
+};
+
+var hashtagsInsta = " | 📝 Sommaire complet en cliquant sur le lien dans la bio ! 🔝\n";
+    hashtagsInsta += "#enkiosque #kiosque #alaune #une #laune #couverture #cover #coverjunkie #presse #papier #print #pressepapier #magazine #journal #journaux"
+
 var arraychoixTitre = [];
 var titresArray = [];
 var searchtitresArray = [];
@@ -274,12 +287,11 @@ function displayTitre() {
 }
 
 publicationsRef.on("child_removed", snapPub => {
-
     $('#' + snapPub.key).remove();
-
 });
 
-publicationsRef.on("child_added", snapPub => {
+//Affichage de toutes les publications
+publicationsRef.orderByChild('date_parution').on("child_added", snapPub => {
 
     var titre = snapPub.child("titre").val();
     
@@ -287,7 +299,7 @@ publicationsRef.on("child_added", snapPub => {
     titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
 
         // Rajout de la nouvelle carte à la suite de la précédente
-        $("#cardGrid").append(createCard(snapTitre.val(), snapPub, snapPub.key));
+        $("#cardGrid").prepend(createCard(snapTitre.val(), snapPub, snapPub.key));
         
         bindRibbon(snapPub, snapTitre);
         
@@ -451,15 +463,25 @@ function modalForm(publication, key, titre) {
     $("#modal-URL_couv").attr("target", "_blank");
 
     $('#modal-btn-uploadCloudinary').click(function() {
-        var URL_preprocess = $("#modal-URL_couv").val();
+        // var URL_preprocess = $("#modal-URL_couv").val();
 
-        cloudinary.openUploadWidget({ cloud_name: 'newspayper', upload_preset: 'd6z1n7ys'}, 
-            function(error, result) { 
-                console.log(error, result) 
-            });
+        // cloudinary.openUploadWidget({ cloud_name: 'newspayper', upload_preset: 'd6z1n7ys'}, 
+        //     function(error, result) { 
+        //         console.log(error, result) 
+        //     });
         
     });
 
+    //Copie dans le presse papier des hashtags Instagram
+    $('#btn-insta').click(function() {
+
+        var texteACopier  = periodiciteAnnonce[titre.periodicite] + " dans " + titre.at_insta + " | ";
+            texteACopier += publication.tags;
+            texteACopier += hashtagsInsta + " " + titre.hashtags;
+
+        copyToClipboard(texteACopier);
+    });
+    
     //Sommaire correctement mis en forme avec des sauts de ligne
     if(publication.sommaire != undefined) {
         $("#modal-sommaire").html((publication.sommaire).replace(/\n\r?/g, '<br \\>'));
@@ -470,6 +492,11 @@ function modalForm(publication, key, titre) {
 
     //tags
     $("#modal-tags").text(publication.tags);
+
+    //Copie dans le presse papier des hashtags Instagram
+    $('#btn-ptMedian').click(function() {
+        copyToClipboard("·");
+    });
 
     //image couverture
     $("#modal-couv").attr("src", publication.URL_couv);
@@ -576,4 +603,16 @@ function removeAccentsSpaces(str) {
   str = str.replace(/,/g, '');
   
   return str;
-}
+};
+
+
+function copyToClipboard(str) {
+
+    navigator.permissions.query({name: "clipboard-write"}).then(result => { 
+        if (result.state == "granted" || result.state == "prompt") {
+            navigator.clipboard.writeText(str);
+            console.log("String copied to clipboard : " + str);
+        }
+    });
+
+};

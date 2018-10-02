@@ -12,6 +12,15 @@ body {
 	word-wrap: break-word;
 }
 
+#modal-edit-inpBorderColor {
+	background-color: #ffffff;
+	width: 90px;
+}
+
+#modal-couv {
+	padding: 20px;
+}
+
 .resizable {
 	resize: both !important;
 }

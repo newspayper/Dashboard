@@ -462,14 +462,33 @@ function modalForm(publication, key, titre) {
     $("#modal-URL_couv").attr("href", publication.URL_couv);
     $("#modal-URL_couv").attr("target", "_blank");
 
-    $('#modal-btn-uploadCloudinary').click(function() {
-        // var URL_preprocess = $("#modal-URL_couv").val();
+    //Edition de la couleur de bordure pour rajouter un suffixe Cloudinary
+    $('#modal-edit-inpBorderColor').keyup(function() {
 
-        // cloudinary.openUploadWidget({ cloud_name: 'newspayper', upload_preset: 'd6z1n7ys'}, 
-        //     function(error, result) { 
-        //         console.log(error, result) 
-        //     });
-        
+        var couleur = $('#modal-edit-inpBorderColor').val();
+        if(/^#[0-9A-F]{6}$/i.test(couleur)) {
+            $('#modal-edit-inpBorderColor').css('background-color', couleur);
+        }
+    });
+
+    $('#modal-edit-btnBorderColor').click(function() {
+       
+        var couleur = $('#modal-edit-inpBorderColor').val();
+        if(/^#[0-9A-F]{6}$/i.test(couleur)) {
+            
+            if(publication.URL_couv !== "" && publication.URL_couv !== undefined) {
+                
+                var URL_couv = publication.URL_couv.split('/');
+
+                var newURL  = "https://res.cloudinary.com/newspayper/image/upload/";
+                    newURL += "b_rgb:474747,c_limit,e_shadow,h_970,q_90/b_rgb:";
+                    newURL += couleur.substr(1);
+                    newURL += ",c_lpad,h_1125,w_1125/";
+                    newURL += URL_couv[URL_couv.length - 1];
+
+                $('#modal-edit-URL_couv').val(newURL);
+            }
+        }
     });
 
     //Copie dans le presse papier des hashtags Instagram
@@ -500,6 +519,10 @@ function modalForm(publication, key, titre) {
 
     //image couverture
     $("#modal-couv").attr("src", publication.URL_couv);
+
+    //image couverture
+    $("#modal-couv2").attr("src", publication.URL_couv);
+
 
     $("#editionModal").attr("data-value", key);
    

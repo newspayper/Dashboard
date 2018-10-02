@@ -39,16 +39,12 @@
 <div class="ui six doubling cards" id="cardGrid">
 
     <div class="ui raised card" id="pub_vide">  
-
-      <div class="content">
-        
+      <div class="content">        
         <div class="ui right labeled icon button blue" data-value="modifier" id="btn-add_pub">
             Ajouter une publication
             <i class="plus icon"></i>
-        </div>
-      
+        </div>     
       </div>
-
     </div>
 
 </div>
@@ -126,9 +122,12 @@
         <div class="field">
           <label>URL de la Une</label>
           <input type="text" id="modal-edit-URL_couv">
-          <div id="modal-btn-showCloudinary">
-            <div class="temp ui blue button">
-              Préparation image
+          <div>
+            <input type="text" id="modal-edit-inpBorderColor" maxlength="7" value="#ffffff">
+            <div id="modal-edit-btnBorderColor">
+              <div class="temp ui blue button">
+                Border color
+              </div>
             </div>
           </div>
         </div>
@@ -156,7 +155,7 @@
           <label>Tags</label>
           <input type="text" id="modal-edit-tags">
           <div id="btn-ptMedian">
-            <div class="temp ui green button">
+            <div class="temp ui violet button">
               ·
             </div>
           </div>

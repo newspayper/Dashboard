@@ -12,6 +12,7 @@ firebase.initializeApp(config);
 
 var publicationsRef = firebase.database().ref().child("publications");
 var titresRef = firebase.database().ref().child("titres");
+const refLink = "https://m.me/newspayper.fr";
 
 
 var today = new Date();
@@ -23,7 +24,8 @@ var periodiciteInt = {
     'Bimensuel' : 15,
     'Mensuel' : 30,
     'Bimestriel' : 60,
-    'Trimestriel' : 90 
+    'Trimestriel' : 90,
+    'Semestriel' : 182 
 };
 
 var periodiciteAnnonce = {
@@ -33,7 +35,8 @@ var periodiciteAnnonce = {
     'Bimensuel' : "Ce mois-ci",
     'Mensuel' : "Ce mois-ci",
     'Bimestriel' : "Ce mois-ci",
-    'Trimestriel' : "Ce mois-ci" 
+    'Trimestriel' : "Ce mois-ci",
+    'Semestriel' : "Ce semestre"
 };
 
 var hashtagsInsta = " | 📝 Sommaire complet en cliquant sur le lien dans la bio ! 🔝\n";
@@ -53,10 +56,12 @@ $('.modal-edit-btn').click(function() {
 
     var edit_URL_couv = $("#modal-edit-URL_couv").val();
     var edit_numero = $("#modal-edit-numero").val();
+    var edit_URL_achat = $("#modal-edit-URL_achat").val();
     var edit_tags = $("#modal-edit-tags").val();
     var edit_sommaire = $("#modal-edit-sommaire").val();
 
     var current_URL_couv = $("#modal-URL_couv").text();
+    var current_URL_achat = $("#modal-URL_achat").text();
     var current_numero = $("#modal-numero").text();
     var current_tags = $("#modal-tags").text();
     var current_sommaire = $("#modal-sommaire-hidden").text();
@@ -70,7 +75,7 @@ $('.modal-edit-btn').click(function() {
 
     switch (boutonClique) {
         case 'fermer':
-            if(edit_URL_couv != "" || edit_numero != "" || edit_tags != "" || edit_sommaire != "") {
+            if(edit_URL_couv != "" || edit_numero != "" || edit_tags != "" || edit_sommaire != "" || edit_URL_achat != "") {
                 if(confirm("Modifications non enregistrées.\nFermer malgré tout ?")) {
                     $("#editionModal").modal("hide");
                 }
@@ -119,6 +124,9 @@ $('.modal-edit-btn').click(function() {
                     if(edit_URL_couv != "") {URL_couv = edit_URL_couv;}
                     else {URL_couv = current_URL_couv;}
 
+                    if(edit_URL_achat != "") {URL_achat = edit_URL_achat;}
+                    else {URL_achat = current_URL_achat;}
+
                     if(edit_numero != "") {numero = edit_numero;}
                     else {numero = current_numero;}
 
@@ -129,6 +137,7 @@ $('.modal-edit-btn').click(function() {
                     else {sommaire = current_sommaire;}
 
                     publication["URL_couv"] = URL_couv;
+                    publication["URL_achat"] = URL_achat;
                     publication["numero"] = numero;
                     publication["tags"] = tags;
                     publication["sommaire"] = sommaire;
@@ -317,6 +326,7 @@ publicationsRef.on("child_changed", snapPub => {
 
     $('#card-' + key + '-header').text(titre + ' n° ' + publication.numero);
     $('#card-' + key + '-URL_couv').attr('src', publication.URL_couv);
+    //$('#card-' + key + '-URL_achat').attr('src', publication.URL_achat); vérifier si utile
     $('#card-' + key + '-date_parution').text(date.toLocaleDateString('fr-FR'));
     $('#card-' + key + '-tags').text(publication.tags);
 
@@ -379,12 +389,16 @@ function emptyEditModal () {
     $("#modal-couv").attr("src", "");
     $("#modal-URL_couv").attr("href", "");
     $("#modal-URL_couv").text("");
+    $("#modal-URL_achat").attr("href", "");
+    $("#modal-URL_achat").text("");
     $("#modal-sommaire").text("");
     $("#modal-sommaire-hidden").text("");
     $("#modal-tags").text("");
 
     $("#modal-edit-numero").val("");
+    $("#modal-edit-achat").val("");
     $("#modal-edit-URL_couv").val("");
+    $("#modal-edit-URL_achat").val("");
     $("#modal-edit-sommaire").val("");
     $("#modal-edit-tags").val("");
     
@@ -462,6 +476,11 @@ function modalForm(publication, key, titre) {
     $("#modal-URL_couv").attr("href", publication.URL_couv);
     $("#modal-URL_couv").attr("target", "_blank");
 
+    //URL couverture
+    $("#modal-URL_achat").text(publication.URL_achat);
+    $("#modal-URL_achat").attr("href", publication.URL_achat);
+    $("#modal-URL_achat").attr("target", "_blank");
+
     //Edition de la couleur de bordure pour rajouter un suffixe Cloudinary
     $('#modal-edit-inpBorderColor').keyup(function() {
 
@@ -481,7 +500,7 @@ function modalForm(publication, key, titre) {
                 var URL_couv = publication.URL_couv.split('/');
 
                 var newURL  = "https://res.cloudinary.com/newspayper/image/upload/";
-                    newURL += "b_rgb:474747,c_limit,e_shadow,h_970,q_90/b_rgb:";
+                    newURL += "b_rgb:474747,c_fit,e_shadow,h_970,q_90/b_rgb:";
                     newURL += couleur.substr(1);
                     newURL += ",c_lpad,h_1125,w_1125/";
                     newURL += URL_couv[URL_couv.length - 1];
@@ -497,6 +516,25 @@ function modalForm(publication, key, titre) {
         var texteACopier  = periodiciteAnnonce[titre.periodicite] + " dans " + titre.at_insta + " | ";
             texteACopier += publication.tags;
             texteACopier += hashtagsInsta + " " + titre.hashtags;
+
+        copyToClipboard(texteACopier);
+    });
+
+    //Copie dans le presse papier des hashtags Twitter
+    $('#btn-twitter').click(function() {
+
+        var tags = publication.tags.split('· ');
+
+        //var texteACopier  = periodiciteAnnonce[titre.periodicite] + " dans " + titre.at_insta + "\n";
+        var texteACopier  = "Retrouvez " + titre.at_insta;
+            //texteACopier += hashtagsInsta + " " + titre.hashtags;
+            texteACopier += ' dans la #revuedepresse de @newspayper_fr sur @messenger 🗨️ 📰\n👉 ';
+            texteACopier += refLink + "?ref=sharedPublication%7C" + key;
+            texteACopier += ' 👈\n\n';
+
+            for (i = 0; i < tags.length; i++) {
+                texteACopier += tags[i] + '\n';
+            }
 
         copyToClipboard(texteACopier);
     });
@@ -519,10 +557,6 @@ function modalForm(publication, key, titre) {
 
     //image couverture
     $("#modal-couv").attr("src", publication.URL_couv);
-
-    //image couverture
-    $("#modal-couv2").attr("src", publication.URL_couv);
-
 
     $("#editionModal").attr("data-value", key);
    

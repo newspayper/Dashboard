@@ -1,5 +1,8 @@
 
-// Initialize Firebase
+//////////////////////////////////////////// INITIALISATIONS ////////////////////////////////////////////
+
+
+/********** Initialisation Firebase ***********/
 var config = {
     apiKey: "AIzaSyDg-vtPrUwFU1m7w-5RtCy-mAAFi-qJx8U",
     authDomain: "chatbot-npp.firebaseapp.com",
@@ -12,8 +15,10 @@ firebase.initializeApp(config);
 
 var publicationsRef = firebase.database().ref().child("publications");
 var titresRef = firebase.database().ref().child("titres");
-const refLink = "https://m.me/newspayper.fr";
 
+
+/********** Initialisations pour traitements Dashboard ***********/
+const refLink = "https://m.me/newspayper.fr";
 
 var today = new Date();
 
@@ -47,12 +52,18 @@ var titresArray = [];
 var searchtitresArray = [];
 
 
-// Association des actions souhaitées aux boutons du modal d'édition
+
+
+//////////////////////////////////////////// BIND EVENEMENTS ////////////////////////////////////////////
+
+
+/********* Gestion des boutons des modaux *********/
+
+/*** Boutons du modal d'édition publication ***/
 $('.modal-edit-btn').click(function() {
 
     var keyPub = $('#editionModal').attr("data-value");
     var boutonClique = $(this).data("value");
-    //console.log("Clic bouton '" + boutonClique + "' - " + keyPub);
 
     var edit_URL_couv = $("#modal-edit-URL_couv").val();
     var edit_numero = $("#modal-edit-numero").val();
@@ -155,10 +166,48 @@ $('.modal-edit-btn').click(function() {
                 }
             }
             break;
+    
+        case 'creerSuivante':
+            
+            if(confirm("Confirmer la création de la publication suivante ?")) {
+                
+                var newProprietes = {};                
+                arraychoixTitre = titresArray.find(k => k.nom==titre);
+                newProprietes["titre_short"] = arraychoixTitre.nom_short;
+                newProprietes["titre"] = titre;
+                newProprietes["numero"] = parseInt(current_numero)+1;
+
+                var newPublication = {};
+                var keyPub = removeAccentsSpaces(titre + "_" + (parseInt(current_numero) + 1) );
+                
+                newPublication["/" + keyPub + "/"] = newProprietes;
+                
+                    publicationsRef.update(newPublication)
+                    .then(function() {
+
+                        titresRef.child(removeAccentsSpaces(titre)).child("publications").update(newPublication)
+                        .then(function() {
+
+                            // var publication = {};
+                            // publication["URL_couv"] = "";
+                            // publication["URL_achat"] = "";
+                            // publication["numero"] = current_numero;
+                            // publication["tags"] = "";
+                            // publication["sommaire"] = "";
+                            // publication["date_parution"] = "";
+
+                            // console.log("Publication ajoutée : " + keyPub);
+                            // modalForm(publication, keyPub);
+                            $("#editionModal").modal("hide");
+                        });
+
+                    });
+            }
+            break;
     }
 });
 
-// Association des actions souhaitées aux boutons du modal de rajout de publication
+/*** Bouton validation création nouvelle publication ***/
 $('.modal-newPub-btn').click(function() {
 
     var boutonClique = $(this).data("value");
@@ -200,9 +249,6 @@ $('.modal-newPub-btn').click(function() {
                     var newPublication = {};
                     var keyPub = removeAccentsSpaces(newPub_titre + "_" + newPub_numero);
 
-                    //console.log("keyPub = " + keyPub);
-                    //console.log("newProprietes = " + JSON.stringify(newProprietes));
-
                     newPublication["/" + keyPub + "/"] = newProprietes;
                 
                     publicationsRef.update(newPublication)
@@ -223,10 +269,12 @@ $('.modal-newPub-btn').click(function() {
 
             break;
     }
-
 });
 
-// Ouverture du modal sur clic sur le bouton d'ajout de publication
+
+/********* Gestion des boutons des modaux *********/
+
+/****** Ouverture du modal d'ajout de nouvelle publication ******/
 $('#btn-add_pub').click(function() {
 
     emptyNewPubModal();
@@ -239,10 +287,140 @@ $('#btn-add_pub').click(function() {
             emptyNewPubModal();
         }
     }).modal('show');
-
 });
 
-//Remplissage des tableaux des titres et de recherche titres
+/****** Lancement de la recherche de titre dans le pop-up de rajout nouvelle publication ******/
+$("#search-bar").on("click", function() {
+  displayTitre();
+});
+
+/****** Ouverture du modal de scraping couvertures ******/
+$('#modal-edit-btnScrapingModal').click(function() {
+    
+    var toto= "ahaha";
+
+    $('#scrapingModal').modal('setting', 'closable', false)
+    .modal({
+        allowMultiple : true
+    }).modal('show');
+});
+
+/****** Bouton qui déclenche le scraping de la couverture ******/
+$('#btn-launchScraping').click(function() {
+});
+
+/****** Bouton qui déclenche l'upload Cloudinary + update de la BDD ******/
+$('#btn-uploadUpdate').click(function() {
+
+    if(confirm("Confirmer l'upload sur Cloudinary")) {
+        var url_image = $("#scrapingModal_scrapedCouv").attr("src");
+        var idPublication = $('#editionModal').attr("data-value");
+
+        var data = 
+        {
+          "url_image": url_image,
+          "idPublication": idPublication
+        };
+     
+        $.ajax({
+            type: "POST",
+            url: "https://hooks.zapier.com/hooks/catch/3041686/cjw5k3/",
+            data: JSON.stringify(data),
+            success: function(r1) {       
+            },
+            error: function(r1) { 
+                alert("Echec de l'envoi du POST à Zapier");         
+            }
+        });
+    }
+});
+
+
+
+
+//////////////////////////////////////////// AUTRES ////////////////////////////////////////////
+
+/*** Gestion de la couleur des textes indiquant le nombre de caractères : sommaire ***/
+$('#modal-edit-sommaire').on('input', function() {
+    var nbcar = $('#modal-edit-sommaire').val().length;
+    $('#modal-edit-nbcarSommaire').text(nbcar + "/2000 caractères");
+    if(nbcar<=2000)
+        $('#modal-edit-nbcarSommaire').css('color', 'green');
+    else
+        $('#modal-edit-nbcarSommaire').css('color', 'red');
+});
+
+/*** Gestion de la couleur des textes indiquant le nombre de caractères : tags ***/
+$('#modal-edit-tags').on('input', function() {
+    var nbcar = $('#modal-edit-tags').val().length;
+    $('#modal-edit-nbcarTags').text(nbcar + "/80 caractères");
+    if(nbcar<=80)
+        $('#modal-edit-nbcarTags').css('color', 'green');
+    else
+        $('#modal-edit-nbcarTags').css('color', 'red');
+});
+
+
+/*** Edition de la couleur de bordure pour rajouter un suffixe Cloudinary ***/
+$('#modal-edit-inpBorderColor').keyup(function() {
+    var couleur = $('#modal-edit-inpBorderColor').val();
+    if(/^#[0-9A-F]{6}$/i.test(couleur)) {
+        $('#modal-edit-inpBorderColor').css('background-color', couleur);
+    }
+});
+
+
+
+
+//////////////////////////////////////////// TRAITEMENTS LECTURE BDD ////////////////////////////////////////////
+
+/*** Ajout des cartes de publication ***/
+publicationsRef.orderByChild('date_parution').on("child_added", snapPub => {
+
+    var titre = snapPub.child("titre").val();
+    
+    // On récupère les infos du titre correspondant à la publication
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
+
+        // Rajout de la nouvelle carte à la suite de la précédente
+        $("#cardGrid").prepend(createCard(snapTitre.val(), snapPub, snapPub.key));
+        
+        bindRibbon(snapPub, snapTitre);
+        
+    });
+});
+
+/*** Actualisation des cartes de publication lorsque les données changent ***/
+publicationsRef.on("child_changed", snapPub => {
+    
+    var titre = snapPub.child("titre").val();
+    var publication = snapPub.val();
+    var key = snapPub.key;
+    var date = new Date(parseInt(publication.date_parution));
+
+    $('#card-' + key + '-header').text(titre + ' n° ' + publication.numero);
+    $('#card-' + key + '-URL_couv').attr('src', publication.URL_couv);
+    //$('#card-' + key + '-URL_achat').attr('src', publication.URL_achat); vérifier si utile
+    $('#card-' + key + '-date_parution').text(date.toLocaleDateString('fr-FR'));
+    $('#card-' + key + '-tags').text(publication.tags);
+
+    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
+
+        var ribbonId = "#ribbon-" + snapPub.key;
+        ribbonId = ribbonId.replace(/&/g, '\\&');
+
+        $(ribbonId).remove();
+
+        var periodeJours = periodiciteInt[snapTitre.val().periodicite];
+
+        $('#card-' + key + '-URL_couv').after(ribbonAlert(publication.date_parution, periodeJours, key));
+
+        bindRibbon(snapPub, snapTitre);
+        
+    });
+});
+
+/*** Récupération des données titres pour utilisation ultérieure ***/
 titresRef.on("child_added", snap => {
 
     var URL_logo = snap.child("URL_logo").val();
@@ -276,79 +454,19 @@ titresRef.on("child_added", snap => {
       type: 'category',
       source: searchtitresArray
     });
-
 });
 
-$("#search-bar").on("click", function() {
-  displayTitre();
-});
-
-function displayTitre() {
-
-  // on écrit le resultat de getvalue dans choixTitre
-  var choixTitre = $('.ui.search').search('get value');
-
-  // on cherche l'objet correspondant
-  arraychoixTitre = titresArray.find(k => k.nom==choixTitre);
-  $("#logo-publicationURL").attr("src", arraychoixTitre.URL_logo);
-  $("#modal-newPub-titre").val(arraychoixTitre.nom);
-  $("#modal-newPub-titreShort").val(arraychoixTitre.nom_short);
-}
-
+/*** Gestion de la suppression de publication ***/
 publicationsRef.on("child_removed", snapPub => {
     $('#' + snapPub.key).remove();
 });
 
-//Affichage de toutes les publications
-publicationsRef.orderByChild('date_parution').on("child_added", snapPub => {
-
-    var titre = snapPub.child("titre").val();
-    
-    // On récupère les infos du titre correspondant à la publication
-    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
-
-        // Rajout de la nouvelle carte à la suite de la précédente
-        $("#cardGrid").prepend(createCard(snapTitre.val(), snapPub, snapPub.key));
-        
-        bindRibbon(snapPub, snapTitre);
-        
-    });
-
-});
-
-//Actualisation de la carte sur modification des données en base
-publicationsRef.on("child_changed", snapPub => {
-    
-    var titre = snapPub.child("titre").val();
-    var publication = snapPub.val();
-    var key = snapPub.key;
-    var date = new Date(parseInt(publication.date_parution));
-
-    $('#card-' + key + '-header').text(titre + ' n° ' + publication.numero);
-    $('#card-' + key + '-URL_couv').attr('src', publication.URL_couv);
-    //$('#card-' + key + '-URL_achat').attr('src', publication.URL_achat); vérifier si utile
-    $('#card-' + key + '-date_parution').text(date.toLocaleDateString('fr-FR'));
-    $('#card-' + key + '-tags').text(publication.tags);
-
-    titresRef.orderByChild("nom").equalTo(titre).on("child_added", snapTitre => {
-
-        var ribbonId = "#ribbon-" + snapPub.key;
-        ribbonId = ribbonId.replace(/&/g, '\\&');
-
-        $(ribbonId).remove();
-
-        var periodeJours = periodiciteInt[snapTitre.val().periodicite];
-
-        $('#card-' + key + '-URL_couv').after(ribbonAlert(publication.date_parution, periodeJours, key));
-
-        bindRibbon(snapPub, snapTitre);
-        
-    });
-
-});
 
 
-// Bind ou actualise le ribbon concerné
+
+//////////////////////////////////////////// FONCTIONS ////////////////////////////////////////////
+
+/*** Bind ou actualisation du bind des ribbons (pour ouverture et remplissage modal édition) ***/
 function bindRibbon(snapPub, snapTitre) {
 
     //remplacement du caractère spécial '&' sinon jQuery le refuse
@@ -362,7 +480,7 @@ function bindRibbon(snapPub, snapTitre) {
         modalForm(snapPub.val(), snapPub.key, snapTitre.val());
 
         $('#editionModal').modal({
-            //closable  : false,
+            allowmultiple  : true,
             onApprove : function() { return false; },
 
             onHidden : function() {
@@ -371,11 +489,9 @@ function bindRibbon(snapPub, snapTitre) {
         }).modal('setting', 'closable', false).modal('show');
 
     });
-
 };
 
-
-// Vide les champs d'édition du Modal de création d'une nouvelle publication
+/*** RAZ du modal de création de nouvelle publication ***/
 function emptyNewPubModal () {
     $("#modal-newPub-titre").val("");
     $("#modal-newPub-titreShort").val("");
@@ -384,8 +500,10 @@ function emptyNewPubModal () {
     $("#logo-publicationURL").attr("src", "");
 }
 
-//Vide les champs du Modal d'édition, hormis la date de parution
+/*** RAZ du modal d'édition de publication ***/
 function emptyEditModal () {
+    $("#editionModal").attr("data-value", "");
+
     $("#modal-couv").attr("src", "");
     $("#modal-URL_couv").attr("href", "");
     $("#modal-URL_couv").text("");
@@ -403,11 +521,9 @@ function emptyEditModal () {
     $("#modal-edit-tags").val("");
     
     $("#modal-edit-deleteHisto").checkbox("set unchecked");
-
 };
 
-
-// Renvoie l'élement ribbon à afficher en fonction de l'urgence de MAJ
+/*** Préparation de l'affichage d'informations sur le ribbon d'une card publication ***/
 function ribbonAlert (date_parution, periodeJours, key) {
     
     // Calcul de la difference entre les dates en jours (arrondi au supérieur)
@@ -421,7 +537,7 @@ function ribbonAlert (date_parution, periodeJours, key) {
     }
 };
 
-// Renvoie l'élement card en fonction des infos de la publication
+/*** Création HTML d'une carte en fonction des infos publications ***/
 function createCard (titre, snapPublication) {
     
     var publication = snapPublication.val();
@@ -449,19 +565,15 @@ function createCard (titre, snapPublication) {
     cardString +=      '<a id="card-' + key + '-tags">' + publication.tags + '</a>'
     cardString +=    '</a>'
     cardString +=  '</div>'
-    //cardString +=  '<div class="ui bottom attached teal button">'
-    //cardString +=    '<i class="list icon"></i>'
-    //cardString +=    'Voir Sommaire'
-    //cardString +=  '</div>'
     cardString += '</div>'
 
     return(cardString);
-
 }
 
-
-// Modification du modal d'édition en fonction de la publication concernée
+/*** Préparation des modaux d'édition et de scraping en fonction de la publication sélectionnée ***/
 function modalForm(publication, key, titre) {
+
+    /*** Modal d'édition ***/
 
     emptyEditModal();
 
@@ -481,15 +593,6 @@ function modalForm(publication, key, titre) {
     $("#modal-URL_achat").attr("href", publication.URL_achat);
     $("#modal-URL_achat").attr("target", "_blank");
 
-    //Edition de la couleur de bordure pour rajouter un suffixe Cloudinary
-    $('#modal-edit-inpBorderColor').keyup(function() {
-
-        var couleur = $('#modal-edit-inpBorderColor').val();
-        if(/^#[0-9A-F]{6}$/i.test(couleur)) {
-            $('#modal-edit-inpBorderColor').css('background-color', couleur);
-        }
-    });
-
     $('#modal-edit-btnBorderColor').click(function() {
        
         var couleur = $('#modal-edit-inpBorderColor').val();
@@ -508,6 +611,10 @@ function modalForm(publication, key, titre) {
                 $('#modal-edit-URL_couv').val(newURL);
             }
         }
+    });
+
+    $('#btn-idPublication').click(function() {
+        copyToClipboard(key);
     });
 
     //Copie dans le presse papier des hashtags Instagram
@@ -550,9 +657,14 @@ function modalForm(publication, key, titre) {
     //tags
     $("#modal-tags").text(publication.tags);
 
-    //Copie dans le presse papier des hashtags Instagram
+    //Copie dans le presse papier du point médian
     $('#btn-ptMedian').click(function() {
         copyToClipboard("·");
+    });
+
+    //Copie dans le presse papier de la terminaison URL pour éviter le redirect Facebook
+    $('#btn-termRedirectFB').click(function() {
+        copyToClipboard("?v=%20");
     });
 
     //image couverture
@@ -579,6 +691,7 @@ function modalForm(publication, key, titre) {
     });
 
     var cacher_sources = false;
+    var epresse;
     if(titre != undefined) {
         if(titre.liens != undefined) {
 
@@ -612,7 +725,7 @@ function modalForm(publication, key, titre) {
                 });
             }
 
-            var epresse = titre.liens.epresse;
+            epresse = titre.liens.epresse;
             if(epresse == undefined) {
                 $("#btn-epresse").hide().off();
             }
@@ -637,11 +750,46 @@ function modalForm(publication, key, titre) {
         $("#btn-journaux_fr").hide().off();
         $("#btn-epresse").hide().off();
     }
+
+
+    /*** Modal de scraping couverture ***/
+    //Remplissage des champs et affichage des images
+    $("#scrapingModal_scrapedCouv").attr("src", "https://res.cloudinary.com/newspayper/image/upload/v1544628403/patrick_square.jpg");
+    $("#scrapingModal_urlScrapedCouv").val("");
+    if(undefined!==publication.URL_couv) {
+        $("#scrapingModal_imageBDD").attr("src", publication.URL_couv);
+        $("#scrapingModal_urlImageBDD").val(publication.URL_couv);
+    }
     
+
+    //Récupération des derniers résultats du scraping global d'epresse
+    if(undefined!==epresse) {
+        $.ajax({
+          url: "https://api.apify.com/v1/mmB4sJ9GGuMfhp7sk/crawlers/CfgFNR6WKCbC3YYqm/lastExec/results?token=oW3ZePMZFjmdivSBrhw6LnMME",
+          success: function(results) {
+            for (var i = results.length - 1; i >= 0; i--) {
+                //Si l'url epresse est bien celle qui a été scrapée
+                if(results[i].loadedUrl == epresse) {
+                    $("#scrapingModal_urlScrapedCouv").val(results[i].pageFunctionResult.imgUrl);
+                    $("#scrapingModal_scrapedCouv").attr("src", results[i].pageFunctionResult.imgUrl);
+                }
+            }
+          }
+        });
+    }
 };
 
+/*** Fonction de recherche et d'affichage du titre dans le pop-up de création nouvelle publication ***/
+function displayTitre() {
+  var choixTitre = $('.ui.search').search('get value');
+  // Recherche du titre  et affichage
+  arraychoixTitre = titresArray.find(k => k.nom==choixTitre);
+  $("#logo-publicationURL").attr("src", arraychoixTitre.URL_logo);
+  $("#modal-newPub-titre").val(arraychoixTitre.nom);
+  $("#modal-newPub-titreShort").val(arraychoixTitre.nom_short);
+}
 
-//Supprime les espaces & les accents, pour obtention des clés firebase associées aux publications
+/*** Suppression espaces & accents, pour obtention des clés firebase associées aux publications ***/
 function removeAccentsSpaces(str) {
   var accents    = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
   var accentsOut = "AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz";
@@ -662,7 +810,7 @@ function removeAccentsSpaces(str) {
   return str;
 };
 
-
+/*** Copie une chaîne de caractères dans le clipboard. Uniquement sur Google Chrome ***/
 function copyToClipboard(str) {
 
     navigator.permissions.query({name: "clipboard-write"}).then(result => { 
@@ -671,5 +819,4 @@ function copyToClipboard(str) {
             console.log("String copied to clipboard : " + str);
         }
     });
-
 };

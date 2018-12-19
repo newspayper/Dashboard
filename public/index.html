@@ -14,16 +14,6 @@
     </script>
     <script src="semantic/semantic.min.js"></script> 
 
-    <!-- Cloudinary -->
-<!--     <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.ui.widget.js"></script>
-    <script type="text/javascript" src="jquery.iframe-transport.js"></script>
-    <script type="text/javascript" src="jquery.fileupload.js"></script>
-    <script type="text/javascript" src="jquery.cloudinary.js"></script>
-
-
-    <script src="https://widget.cloudinary.com/global/all.js" type="text/javascript"></script> -->
-    
     <!-- Calendar picker -->
     <script type="text/javascript" src="node_modules/semantic-ui-calendar/dist/calendar.min.js"></script>
     <link rel="stylesheet" href="node_modules/semantic-ui-calendar/dist/calendar.min.css" />
@@ -33,9 +23,10 @@
 
 </head>
 
-
+<!-------------------------------------------------BODY------------------------------------------------->
 <body>
 
+<!------------------ Affichage principal ------------------>
 <div class="ui six doubling cards" id="cardGrid">
 
     <div class="ui raised card" id="pub_vide">  
@@ -50,17 +41,16 @@
 </div>
 
 
-<!-- Modal affiché lors d'un clic sur le ribbon -->
+<!------------------ Modal d'édition de publication ------------------>
 
-<div class="ui modal" id="editionModal" data-value="">
-  <i class="close icon"></i>
+<div class="ui first coupled modal" id="editionModal" data-value="">
   
-  <!-- Début des éléments à modifier dynamiquement -->
-
   <div class="header" id="modal-edit-titre"></div>
   
-  <div class="image content">
+  <!-------- Informations et édition -------->
+  <div class="image scrolling content">
     
+    <!---- Zone latérale gauche (image + liens + boutons) ---->
     <div class="ui medium image">
       <img id="modal-couv" src="">
       <div class="ui basic segment">
@@ -84,6 +74,11 @@
           <div id="btn-epresse">
             <div class="temp ui blue button">
               epresse
+            </div><br/><br/>
+          </div>
+          <div id="btn-idPublication">
+            <div class="temp ui purple button">
+              Copier id publication
             </div>
             <br/><br/>
           </div>
@@ -102,52 +97,67 @@
       </div>
     </div>
 
-    <div class="description">
-      <div class="ui header" style="display:inline">Sommaire du n° </div>
-      <p class="ui header" id="modal-numero" style="display:inline"></p>
-      <div class="ui segments">
-        <div class="ui segment">
-          <p id="modal-sommaire"></p>
-          <p hidden id="modal-sommaire-hidden"></p>
-        </div>
-        <div class="ui secondary segment">
-          Tags : <p id="modal-tags"></p>
-        </div>
-        <div class="ui secondary segment">
-          URL achat : <a id="modal-URL_achat" href=""></a>
+    <!---- Zone centrale (infos) ---->
+    <div class="description" style="width: 100%">
+
+      <!-- Affichage des informations BDD : sommaire, tags, URL d'achat -->
+      <div>
+        <div class="ui header inline">Sommaire du n° </div>
+        <p class="ui header inline" id="modal-numero"></p>
+        <div class="ui segments">
+          <div class="ui segment">
+            <p id="modal-sommaire"></p>
+            <p hidden id="modal-sommaire-hidden"></p>
+          </div>
+          <div class="ui secondary segment">
+            Tags : <p id="modal-tags"></p>
+          </div>
+          <div class="ui secondary segment">
+            URL achat : <a id="modal-URL_achat" href=""></a>
+          </div>
         </div>
       </div>
 
-    <!-- Fin des éléments à modifier dynamiquement -->
-
+      <!-- Séparateur -->
       <h4 class="ui horizontal divider header">
         <i class="edit icon"></i>
         Mettre à jour
       </h4>
 
-      <!-- Formulaire MAJ --> 
-
+      <!-- Formulaire de mise à jour --> 
       <div class="ui form">
         <div class="field">
           <label>URL de la Une</label>
           <input type="text" id="modal-edit-URL_couv">
           <div>
             <input type="text" id="modal-edit-inpBorderColor" maxlength="7" value="#ffffff">
-            <div id="modal-edit-btnBorderColor">
+            <div class="inline" id="modal-edit-btnBorderColor">
               <div class="temp ui blue button">
                 Border color
               </div>
             </div>
+            <div class="inline" id="modal-edit-btnScrapingModal">
+              <div class="ui yellow button">
+                Scraping couverture
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label>Numero</label>
-          <input type="text" id="modal-edit-numero">
         </div>
 
         <div class="field">
           <label>URL achat</label>
           <input type="text" id="modal-edit-URL_achat">
+          <div class="inline" id="btn-termRedirectFB">
+            <div class="temp ui purple button">
+              ?v=%20
+            </div>
+          </div>
+        </div>
+
+        <!--A supprimer à l'occasion : modifs à faire dans le JS sinon la validation ne marche plus-->
+        <div hidden class="field">
+          <label>Numéro</label>
+          <input type="text" id="modal-edit-numero">
         </div>
 
         <div class="field">
@@ -162,12 +172,14 @@
         <div class="field">
           <label>Sommaire</label>
           <textarea class="resizable" id="modal-edit-sommaire"></textarea>
-          <a href="https://emojipedia.org/" target="_blank">emojis</a>
+          <p class="inline" id="modal-edit-nbcarSommaire">0/2000 caractères</p>
+          <a class = "inline" href="https://emojipedia.org/" target="_blank">  emojis</a>
         </div>
         <div class="field">
           <label>Tags</label>
           <input type="text" id="modal-edit-tags">
-          <div id="btn-ptMedian">
+          <p class="inline" id="modal-edit-nbcarTags">/80 caractères</p>
+          <div class="inline" id="btn-ptMedian">
             <div class="temp ui violet button">
               ·
             </div>
@@ -175,51 +187,58 @@
         </div>     
       </div>    
 
-  <!-- FIN de description -->  
     </div>
-  
-  <!-- FIN de image content -->
+
   </div>
   
+
+  <!-------- Boutons et actions -------->
   <div class="actions">
-    <!--
-    <div class="modal-edit-btn ui approve right labeled icon button blue" data-value="ajouter">
-      Ajouter une publication
-      <i class="plus icon"></i>
-    </div>
-    -->
     
     <div class="ui checkbox" id="modal-edit-deleteHisto">
       <input name="example" type="checkbox">
-      <label>Supprimer aussi dans l'historique</label>
+      <label>Supprimer dans l'historique</label>
     </div>
+
     <div class="modal-edit-btn ui approve right labeled icon button red" data-value="supprimer">
-      Supprimer la publication
+      Supprimer publication
       <i class="times icon"></i>
     </div>
+
     <div class="modal-edit-btn ui approve right labeled icon button green" data-value="modifier">
-      Valider les modifications
+      Valider modifs
       <i class="check icon"></i>
     </div>
+
+    <div class="modal-edit-btn ui approve right labeled icon button blue" data-value="creerSuivante">
+      Créer suivante
+      <i class="plus icon"></i>
+    </div>
+
     <div class="modal-edit-btn ui approve button grey" data-value="fermer">
       Fermer
     </div>
+
   </div>
 
 </div>
-<!-- FIN de modal 1 -->
 
 
-<!-- Modal affiché lors de l'ajout d'une publication -->
+<!------------------ Modal d'ajout de publication ------------------>
+
 <div class="ui modal" id="newPubModal">
   <i class="close icon"></i>
+  
+  <!-------- Titre -------->
   <div class="header">
     Créer une nouvelle publication
   </div>
+
+  <!-------- Formulaire -------->
   <div class="content">
-    
     <div class="description">
       
+      <!-- Barre de recherche -->
       <div class="ui search" id="search-bar">
         <div class="ui icon input">
           <input class="prompt" type="text" id="inp-searchBar" placeholder="Chercher titres...">
@@ -228,15 +247,12 @@
         <div class="results"></div>
       </div>
 
-
-          <!--
-          <script src="js/search.js"></script>
-          -->
-
+      <!-- Logo publication (caché) -->
       <div id="logo-publication">
         <img id="logo-publicationURL" class="ui medium rounded image" src=""> 
       </div>     
 
+      <!-- Champs éditables du formulaire -->
       <div class="ui form">
         <div class="field">
           <label>Titre</label>
@@ -255,6 +271,7 @@
     </div>
   </div>
   
+  <!-------- Boutons et actions -------->
   <div class="actions">
     <div class="modal-newPub-btn ui black approve button" data-value="Annuler">
       Annuler
@@ -266,12 +283,83 @@
   </div>
 
 </div>
-<!-- FIN de modal 2 -->
 
-  <!-- chargement scripts -->
 
-  <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
-  <script src="js/index.js"></script>
+<!------------------ Modal de scraping de couverture ------------------>
+<div class="ui second large coupled modal" id="scrapingModal" data-value="">
+  <div class="header">Scraping et remplacement de la une</div>
+  
+  <!--Images de couverture-->
+  <div class="ui grid" id="scrapingColumn">
+    
+    <div class="two wide column"></div>
+    
+    <div class="five wide column">
+      
+      <div class="ui card" id="card-scrapedCouv">
+        <div class="content">
+          <div class="ui header">Image dernier scraping</div>
+          <div class="image">
+            <img id="scrapingModal_scrapedCouv" class="ui medium image" src="https://res.cloudinary.com/newspayper/image/upload/v1544628403/patrick_square.jpg">
+          </div>
+        </div>
+      </div>
+      <div class="ui form">
+        <div class="field">
+          <label>URL image scrapée</label>
+          <input type="text" id="scrapingModal_urlScrapedCouv">
+        </div>
+      </div>
+
+
+    </div>
+
+    <div class="two wide column"></div>
+    
+    <div class="five wide column">
+
+      <div class="ui card" id="card-databaseImage">
+        <div class="content">
+          <div class="ui header">Image en BDD</div>
+          <div class="image">
+          <img id="scrapingModal_imageBDD" class="ui medium image" src="https://res.cloudinary.com/newspayper/image/upload/v1544628403/patrick_square.jpg">
+        </div>
+        </div>
+      </div>
+      <div class="ui form">
+        <div class="field">
+          <label>URL image BDD</label>
+          <input type="text" id="scrapingModal_urlImageBDD">
+        </div>
+      </div>
+    </div>
+    
+    <div class="two wide column"></div>
+
+  </div>
+
+  <!--Acions et boutons-->
+  <div class="actions">
+
+    <div class="ui button yellow" id="btn-launchScraping">
+      Scraping Couverture
+    </div>
+    <div class="ui button violet" id="btn-uploadUpdate">
+      Upload Cloudinary & update BDD
+    </div>
+    <div class="ui approve button grey" data-value="fermer">
+      Fermer
+    </div>
+
+  </div>
+
+</div>
+
+
+<!------------------ Exécution des scripts ------------------>
+
+<script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+<script src="js/index.js"></script>
 
 
 </body>

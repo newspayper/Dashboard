@@ -24,3 +24,11 @@ body {
 .resizable {
 	resize: both !important;
 }
+
+.inline {
+	 display: inline;
+}
+
+.modal.second {
+	position: fixed;
+}

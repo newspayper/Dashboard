@@ -37,7 +37,6 @@
         </div>     
       </div>
     </div>
-
 </div>
 
 
@@ -48,8 +47,9 @@
   <div class="header" id="modal-edit-titre"></div>
   
   <!-------- Informations et édition -------->
-  <div class="image scrolling content">
-    
+  <div class="image content">
+  <!--<div class="image content">-->
+
     <!---- Zone latérale gauche (image + liens + boutons) ---->
     <div class="ui medium image">
       <img id="modal-couv" src="">
@@ -104,6 +104,8 @@
       <div>
         <div class="ui header inline">Sommaire du n° </div>
         <p class="ui header inline" id="modal-numero"></p>
+        <p class="ui header inline">   -   </p>
+        <p class="ui header inline" id="modal-id"></p>
         <div class="ui segments">
           <div class="ui segment">
             <p id="modal-sommaire"></p>
@@ -218,9 +220,7 @@
     <div class="modal-edit-btn ui approve button grey" data-value="fermer">
       Fermer
     </div>
-
   </div>
-
 </div>
 
 
@@ -281,7 +281,6 @@
       <i class="checkmark icon"></i>
     </div>
   </div>
-
 </div>
 
 
@@ -307,7 +306,12 @@
       <div class="ui form">
         <div class="field">
           <label>URL image scrapée</label>
-          <input type="text" id="scrapingModal_urlScrapedCouv">
+          <div class="ui action input">
+            <input type="text" id="scrapingModal_urlScrapedCouv">
+            <div class="ui inline button green" id="btn-scrpingRefreshImage">
+              ↑
+            </div>
+          </div>  
         </div>
       </div>
 
@@ -352,7 +356,6 @@
     </div>
 
   </div>
-
 </div>
 
 

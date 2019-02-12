@@ -168,41 +168,40 @@ $('.modal-edit-btn').click(function() {
             break;
     
         case 'creerSuivante':
-            
-            if(confirm("Confirmer la création de la publication suivante ?")) {
-                
-                var newProprietes = {};                
-                arraychoixTitre = titresArray.find(k => k.nom==titre);
-                newProprietes["titre_short"] = arraychoixTitre.nom_short;
-                newProprietes["titre"] = titre;
-                newProprietes["numero"] = parseInt(current_numero)+1;
 
-                var newPublication = {};
-                var keyPub = removeAccentsSpaces(titre + "_" + (parseInt(current_numero) + 1) );
-                
-                newPublication["/" + keyPub + "/"] = newProprietes;
-                
-                    publicationsRef.update(newPublication)
-                    .then(function() {
+            var keyPub = removeAccentsSpaces(titre + "_" + (parseInt(current_numero) + 1) );
+            titresRef.child(removeAccentsSpaces(titre)).child("publications").child(keyPub)
+            .once('value').then(function(snapshot) {
 
-                        titresRef.child(removeAccentsSpaces(titre)).child("publications").update(newPublication)
-                        .then(function() {
+                if(null===snapshot.val()) {
+                    
+                    if(confirm("Confirmer la création de la publication suivante ?")) {
+                        
+                        var newProprietes = {};                
+                        arraychoixTitre = titresArray.find(k => k.nom==titre);
+                        newProprietes["titre_short"] = arraychoixTitre.nom_short;
+                        newProprietes["titre"] = titre;
+                        newProprietes["numero"] = parseInt(current_numero)+1;
 
-                            // var publication = {};
-                            // publication["URL_couv"] = "";
-                            // publication["URL_achat"] = "";
-                            // publication["numero"] = current_numero;
-                            // publication["tags"] = "";
-                            // publication["sommaire"] = "";
-                            // publication["date_parution"] = "";
+                        var newPublication = {};
+                        newPublication["/" + keyPub + "/"] = newProprietes;
+                        
+                            publicationsRef.update(newPublication)
+                            .then(function() {
 
-                            // console.log("Publication ajoutée : " + keyPub);
-                            // modalForm(publication, keyPub);
-                            $("#editionModal").modal("hide");
-                        });
+                                titresRef.child(removeAccentsSpaces(titre)).child("publications").update(newPublication)
+                                .then(function() {
+                                    $("#editionModal").modal("hide");
+                                });
 
-                    });
-            }
+                            });
+                    }
+                }
+                else {
+                    alert("ERREUR : La publication suivante existe déjà !");
+                }
+
+            });
             break;
     }
 });
@@ -239,32 +238,39 @@ $('.modal-newPub-btn').click(function() {
                 alert("Les deux champs doivent être remplis !");
             }
             else {
-                if(confirm("Confirmer l'ajout de la publication ?")) {
-                    var newProprietes = {};
-
-                    newProprietes["titre"] = newPub_titre;
-                    newProprietes["titre_short"] = newPub_titreShort;
-                    newProprietes["numero"] = newPub_numero;
                 
-                    var newPublication = {};
-                    var keyPub = removeAccentsSpaces(newPub_titre + "_" + newPub_numero);
+                var keyPub = removeAccentsSpaces(newPub_titre + "_" + newPub_numero);
+                titresRef.child(removeAccentsSpaces(newPub_titre)).child("publications").child(keyPub)
+                .once('value').then(function(snapshot) {
 
-                    newPublication["/" + keyPub + "/"] = newProprietes;
-                
-                    publicationsRef.update(newPublication)
-                    .then(function() {
+                    if(null===snapshot.val()) {
 
-                        titresRef.child(removeAccentsSpaces(newPub_titre)).child("publications").update(newPublication)
-                        .then(function() {
+                        if(confirm("Confirmer l'ajout de la publication ?")) {
+                            var newProprietes = {};
 
-                            console.log("Publication ajoutée : " + keyPub);
-                            emptyNewPubModal();
-                            $("#newPubModal").modal("hide");
-                        });
+                            newProprietes["titre"] = newPub_titre;
+                            newProprietes["titre_short"] = newPub_titreShort;
+                            newProprietes["numero"] = newPub_numero;
+        
+                            var newPublication = {};
+                            newPublication["/" + keyPub + "/"] = newProprietes;
+                        
+                            publicationsRef.update(newPublication)
+                            .then(function() {
+                                titresRef.child(removeAccentsSpaces(newPub_titre)).child("publications").update(newPublication)
+                                .then(function() {
+                                    console.log("Publication ajoutée : " + keyPub);
+                                    emptyNewPubModal();
+                                    $("#newPubModal").modal("hide");
+                                });
+                            });
+                        }
+                    }
+                    else {
+                        alert("ERREUR : Cette publication existe déjà !");
+                    }
 
-                    });
-
-                }
+                });
             }
 
             break;
@@ -296,17 +302,11 @@ $("#search-bar").on("click", function() {
 
 /****** Ouverture du modal de scraping couvertures ******/
 $('#modal-edit-btnScrapingModal').click(function() {
-    
-    var toto= "ahaha";
 
     $('#scrapingModal').modal('setting', 'closable', false)
     .modal({
         allowMultiple : true
     }).modal('show');
-});
-
-/****** Bouton qui déclenche le scraping de la couverture ******/
-$('#btn-launchScraping').click(function() {
 });
 
 /****** Bouton qui déclenche l'upload Cloudinary + update de la BDD ******/
@@ -319,20 +319,31 @@ $('#btn-uploadUpdate').click(function() {
         var data = 
         {
           "url_image": url_image,
-          "idPublication": idPublication
+          "id_image": idPublication
         };
      
         $.ajax({
             type: "POST",
-            url: "https://hooks.zapier.com/hooks/catch/3041686/cjw5k3/",
-            data: JSON.stringify(data),
-            success: function(r1) {       
-            },
-            error: function(r1) { 
-                alert("Echec de l'envoi du POST à Zapier");         
-            }
+            url: " https://us-central1-chatbot-npp.cloudfunctions.net/uploadToCloudinary",
+            dataType: 'json',
+            data: data
+            ////NOTE : retourne systématiquement un erreur même si ça marche bien... A chercher
+            // ,
+            // success: function(r1) {    
+            //     alert("Réussite de l'envoi du POST à Firebase");
+            //     alert(JSON.stringify(r1));  
+            // },
+            // error: function(r2) { 
+            //     alert("Echec de l'envoi du POST à Firebase");
+            //     alert(JSON.stringify(r2));         
+            // }
         });
     }
+});
+
+/****** Bouton qui déclenche le rafraîchissement de l'image en fonction du champ situé dessous ******/
+$('#btn-scrpingRefreshImage').click(function() {
+    $("#scrapingModal_scrapedCouv").attr("src", $('#scrapingModal_urlScrapedCouv').val());
 });
 
 
@@ -359,7 +370,6 @@ $('#modal-edit-tags').on('input', function() {
     else
         $('#modal-edit-nbcarTags').css('color', 'red');
 });
-
 
 /*** Edition de la couleur de bordure pour rajouter un suffixe Cloudinary ***/
 $('#modal-edit-inpBorderColor').keyup(function() {
@@ -489,7 +499,7 @@ function bindRibbon(snapPub, snapTitre) {
         }).modal('setting', 'closable', false).modal('show');
 
     });
-};
+}
 
 /*** RAZ du modal de création de nouvelle publication ***/
 function emptyNewPubModal () {
@@ -512,6 +522,7 @@ function emptyEditModal () {
     $("#modal-sommaire").text("");
     $("#modal-sommaire-hidden").text("");
     $("#modal-tags").text("");
+    $("#modal-id").text("");
 
     $("#modal-edit-numero").val("");
     $("#modal-edit-achat").val("");
@@ -521,7 +532,9 @@ function emptyEditModal () {
     $("#modal-edit-tags").val("");
     
     $("#modal-edit-deleteHisto").checkbox("set unchecked");
-};
+
+    $("#scrapingModal_imageBDD").attr("src", "https://res.cloudinary.com/newspayper/image/upload/v1544628403/patrick_square.jpg")
+}
 
 /*** Préparation de l'affichage d'informations sur le ribbon d'une card publication ***/
 function ribbonAlert (date_parution, periodeJours, key) {
@@ -535,7 +548,7 @@ function ribbonAlert (date_parution, periodeJours, key) {
     } else {
       return '<a class="ui green ribbon label" id="ribbon-' + key + '">RESTE '+ reste + ' JOURS</a>' ;
     }
-};
+}
 
 /*** Création HTML d'une carte en fonction des infos publications ***/
 function createCard (titre, snapPublication) {
@@ -574,7 +587,6 @@ function createCard (titre, snapPublication) {
 function modalForm(publication, key, titre) {
 
     /*** Modal d'édition ***/
-
     emptyEditModal();
 
     //titre
@@ -582,6 +594,9 @@ function modalForm(publication, key, titre) {
 
     //header sommaire
     $("#modal-numero").text(publication.numero);
+
+    //header id
+    $("#modal-id").text(key);
 
     //URL couverture
     $("#modal-URL_couv").text(publication.URL_couv);
@@ -650,7 +665,7 @@ function modalForm(publication, key, titre) {
     if(publication.sommaire != undefined) {
         $("#modal-sommaire").html((publication.sommaire).replace(/\n\r?/g, '<br \\>'));
     }
-    
+
     //Sommaire caché pour avoir sa vraie valeur
     $("#modal-sommaire-hidden").text(publication.sommaire);
 
@@ -682,6 +697,7 @@ function modalForm(publication, key, titre) {
               var month = date.getMonth() + 1;
               var year = date.getFullYear();
               return day + '/' + month + '/' + year;
+       
             }
           }
         });
@@ -725,13 +741,42 @@ function modalForm(publication, key, titre) {
                 });
             }
 
+            //Gestion des boutons affichage epresse et scraping epresse
             epresse = titre.liens.epresse;
             if(epresse == undefined) {
                 $("#btn-epresse").hide().off();
+                $("#btn-launchScraping").hide().off();
             }
             else {
                 $("#btn-epresse").show().off().click(function() {
                     var win = window.open(epresse);
+                });
+                $('#btn-launchScraping').show().off().click(function() {
+                    var idPublication = $('#editionModal').attr("data-value");
+                    var data = 
+                    {
+                      "customData": idPublication,
+                      "startUrls": [
+                        {
+                          "value": epresse
+                        }
+                      ]
+                    };
+                    $.ajax({
+                        type: "POST",
+                        url: "https://api.apify.com/v1/mmB4sJ9GGuMfhp7sk/crawlers/5XTmjcPwinHt8ZFGh/execute?token=7mcj5usB7TSMevnohq3jpZHzF&wait=30",//"https://api.apify.com/v1/mmB4sJ9GGuMfhp7sk/crawlers/5XTmjcPwinHt8ZFGh/execute?token=7mcj5usB7TSMevnohq3jpZHzF&wait=30",
+                        contentType: 'application/json',
+                        data: JSON.stringify(data),
+                        success: function(r1) { 
+                            $.ajax({
+                              url: "https://api.apify.com/v1/mmB4sJ9GGuMfhp7sk/crawlers/5XTmjcPwinHt8ZFGh/lastExec/results?token=Lxn4JW7TwWPTAoFTiPc9FemQs",
+                              success: function(r2) {
+                                $("#scrapingModal_scrapedCouv").attr("src", r2[0].pageFunctionResult.imgUrl);
+                                $("#scrapingModal_urlScrapedCouv").val(r2[0].pageFunctionResult.imgUrl);
+                              }
+                            });
+                        }
+                    });
                 });
             }
 
@@ -776,8 +821,8 @@ function modalForm(publication, key, titre) {
             }
           }
         });
-    }
-};
+    }    
+}
 
 /*** Fonction de recherche et d'affichage du titre dans le pop-up de création nouvelle publication ***/
 function displayTitre() {
@@ -806,17 +851,17 @@ function removeAccentsSpaces(str) {
   str = str.replace(/\s+/g, '');
   str = str.replace(/\'/g, '');
   str = str.replace(/,/g, '');
+  str = str.replace(/&/g,'Et');
   
   return str;
-};
+}
 
 /*** Copie une chaîne de caractères dans le clipboard. Uniquement sur Google Chrome ***/
 function copyToClipboard(str) {
-
     navigator.permissions.query({name: "clipboard-write"}).then(result => { 
         if (result.state == "granted" || result.state == "prompt") {
             navigator.clipboard.writeText(str);
             console.log("String copied to clipboard : " + str);
         }
     });
-};
+}
